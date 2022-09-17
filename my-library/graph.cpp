@@ -49,9 +49,9 @@ struct Graph
     {
         assert(0 <= s && s < _n);
         queue<int> q;
-        vi dis(_n, INT_MAX);
+        _dis.assign(_n, INT_MAX);
         _prev.assign(_n, -1);
-        dis[s] = 0;
+        _dis[s] = 0;
         q.push(s);
         while (q.size())
         {
@@ -59,15 +59,15 @@ struct Graph
             q.pop();
             for (int n : _g[t])
             {
-                if (dis[n] > dis[t] + 1)
+                if (_dis[n] > _dis[t] + 1)
                 {
-                    dis[n] = dis[t] + 1;
+                    _dis[n] = _dis[t] + 1;
                     _prev[n] = t;
                     q.push(n);
                 }
             }
         }
-        return dis;
+        return _dis;
     }
     vi prev()
     {
@@ -149,12 +149,38 @@ struct Graph
             }
         return _parent;
     }
+    int lca(int a, int b)
+    {
+        if (_dis[a] > _dis[b])
+            swap(a, b);
+        for (int i = 0; i < 30; i++)
+        {
+            if ((_dis[b] - _dis[a]) >> i & 1)
+                b = _parent[b][i];
+        }
+        if (a == b)
+            return a;
+        while (_parent[a][0] != _parent[b][0])
+        {
+            int l = 0, r = 30;
+            while (r - l > 1)
+            {
+                int m = (l + r) / 2;
+                if (_parent[a][m] == _parent[b][m])
+                    r = m;
+                else
+                    l = m;
+            }
+            a = _parent[a][l];
+            b = _parent[b][l];
+        }
+        return _parent[a][0];
+    }
 
 private:
     int _n;
-    vvi _g;
-    vi _prev, _c;
     vvi _g, _parent;
+    vi _dis, _prev, _c;
 };
 
 struct Tree : Graph
