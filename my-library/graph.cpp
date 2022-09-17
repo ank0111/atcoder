@@ -75,14 +75,6 @@ struct Graph
     {
         return _prev;
     }
-    tuple<int, int, int> tdia()
-    {
-        vi d = dis();
-        int s = max_element(d.begin(), d.end()) - d.begin();
-        d = dis(s);
-        int t = max_element(d.begin(), d.end()) - d.begin();
-        return {d[t], s, t};
-    }
     vi tpsort()
     {
         vi in(_n);
@@ -135,6 +127,24 @@ struct Graph
     {
         return _c;
     }
+
+protected:
+    int _n;
+    vvi _g;
+    vi _dis, _prev, _c;
+};
+
+struct Tree : Graph
+{
+    Tree(int n = 0) : Graph(n, n - 1) {}
+    tuple<int, int, int> dia()
+    {
+        vi d = dis();
+        int s = max_element(d.begin(), d.end()) - d.begin();
+        d = dis(s);
+        int t = max_element(d.begin(), d.end()) - d.begin();
+        return {d[t], s, t};
+    }
     vvi doubling(int r)
     {
         assert(0 <= r && r < _n);
@@ -179,13 +189,6 @@ struct Graph
         return _parent[a][0];
     }
 
-private:
-    int _n;
-    vvi _g, _parent;
-    vi _dis, _prev, _c;
-};
-
-struct Tree : Graph
-{
-    Tree(int n = 0) : Graph(n, n - 1) {}
+protected:
+    vvi _parent;
 };
