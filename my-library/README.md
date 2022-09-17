@@ -1,9 +1,9 @@
 # 競プロ用ライブラリ（主にAtCoder）
 
-## [Graph](document/graph.md)
+## [Graph](graph)
 
 グラフ関連の操作をまとめています。
 
-## [Mod](document/mod.md)
+## [Mod](mod)
 
 $mod$ 計算をまとめています。
