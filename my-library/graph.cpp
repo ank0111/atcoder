@@ -3,6 +3,8 @@ using namespace std;
 
 struct Graph
 {
+    using vi=vector<int>;
+    using vvi=vector<vi>;
     Graph(int n=0) : _n(n), _g(n), _dis(n, INT_MAX), _prev(n, -1) {}
     void resize(int n)
     {
@@ -38,11 +40,11 @@ struct Graph
     {
         return _n;
     }
-    vector<vector<int>> graph()
+    vvi graph()
     {
         return _g;
     }
-    vector<int> dis(int s = 0)
+    vi dis(int s = 0)
     {
         assert(0 <= s && s < _n);
         queue<int> q;
@@ -64,7 +66,7 @@ struct Graph
         }
         return _dis;
     }
-    vector<int> prev()
+    vi prev()
     {
         return _prev;
     }
@@ -79,6 +81,6 @@ struct Graph
 
 private:
     int _n;
-    vector<vector<int>> _g;
-    vector<int> _dis, _prev;
+    vi _dis, _prev;
+    vvi _g;
 };
