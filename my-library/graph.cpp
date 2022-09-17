@@ -78,6 +78,31 @@ struct Graph
         int t = max_element(_dis.begin(), _dis.end()) - _dis.begin();
         return {_dis[t], s, t};
     }
+    vi tpsort()
+    {
+        vi in(_n);
+        for (int i = 0; i < _n; i++)
+            for (int j : _g[i])
+                in[j]++;
+        queue<int> q;
+        for (int i = 0; i < _n; i++)
+            if (!in[i])
+                q.push(i);
+        vi res;
+        while (q.size())
+        {
+            int t = q.front();
+            q.pop();
+            for (int n : _g[t])
+            {
+                in[n]--;
+                if (!in[n])
+                    q.push(n);
+            }
+            res.push_back(t);
+        }
+        return res;
+    }
 
 private:
     int _n;
