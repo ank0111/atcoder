@@ -19,23 +19,25 @@ struct Graph
             int u, v;
             cin >> u >> v;
             u--, v--;
-            assert(0 <= u && u < _n);
-            assert(0 <= v && v < _n);
-            _g[u].push_back(v);
+            add_edge(u, v);
             if (!d)
-                _g[v].push_back(u);
+                add_edge(v, u);
         }
     }
     void load(vector<pair<int, int>> e, bool d = false)
     {
         for (auto [u, v] : e)
         {
-            assert(0 <= u && u < _n);
-            assert(0 <= v && v < _n);
-            _g[u].push_back(v);
+            add_edge(u, v);
             if (!d)
-                _g[v].push_back(u);
+                add_edge(v, u);
         }
+    }
+    void add_edge(int from, int to)
+    {
+        assert(0 <= from && from < _n);
+        assert(0 <= to && to < _n);
+        _g[from].push_back(to);
     }
     int size()
     {
