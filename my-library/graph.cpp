@@ -5,7 +5,8 @@ struct Graph
 {
     using vi = vector<int>;
     using vvi = vector<vi>;
-    Graph(int n = 0) : _n(n), _g(n) {}
+    Graph(int n = 0, int m = 0, bool d = false) : _n(n), _g(n) { load(m, d); }
+    Graph(int n, vector<pair<int, int>> e, bool d = false) : _n(n), _g(n) { load(e, d); }
     void resize(int n)
     {
         _n = n;
