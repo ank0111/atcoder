@@ -3,9 +3,9 @@ using namespace std;
 
 struct Graph
 {
-    using vi=vector<int>;
-    using vvi=vector<vi>;
-    Graph(int n=0) : _n(n), _g(n), _dis(n, INT_MAX), _prev(n, -1) {}
+    using vi = vector<int>;
+    using vvi = vector<vi>;
+    Graph(int n = 0) : _n(n), _g(n), _dis(n, INT_MAX), _prev(n, -1) {}
     void resize(int n)
     {
         _n = n;
