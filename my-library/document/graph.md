@@ -40,8 +40,8 @@ $d$ が $true$ のときは、 $u$ から $v$ に向けた辺のみ作成しま�
 
 **制約**
 
-- $0<u<=n$
-- $0<v<=n$
+- $0 < u \leq n$
+- $0<v \leq n$
 
 <a id="loade"></a>
 
@@ -55,8 +55,8 @@ $d$ が $true$ のときは、 $u$ から $v$ に向けた辺のみ作成しま�
 
 **制約**
 
-- $0<=u<n$
-- $0<=v<n$
+- $0 \leq u<n$
+- $0 \leq v<n$
 
 ```cpp
 void add_edge(int from,int to)
@@ -68,8 +68,8 @@ $u,\ v$ は $(0-indexed)$ です。
 
 **制約**
 
-- $0<=from<n$
-- $0<=to<n$
+- $0 \leq from<n$
+- $0 \leq to<n$
 
 ## グラフを取得する
 
@@ -97,7 +97,7 @@ vector<int> dis(int s=0)
 
 **制約**
 
-- $0<=s<n$
+- $0 \leq s<n$
 
 ```cpp
 vector<int> prev()
