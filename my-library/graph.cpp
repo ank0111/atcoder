@@ -131,7 +131,7 @@ struct Graph
         }
         return true;
     }
-    vi c()
+    vi color()
     {
         return _c;
     }

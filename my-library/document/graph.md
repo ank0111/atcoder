@@ -133,7 +133,7 @@ bool isBG()
 グラフが $2$ 部グラフであれば $true$ を、そうでないとき $false$ を返します。
 
 ```cpp
-vector<int> c()
+vector<int> color()
 ```
 
 直前に実行した [`isBG`](#isBG) の計算過程で得られた各頂点の色分けリストを返す。
