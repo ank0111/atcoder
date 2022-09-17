@@ -105,9 +105,36 @@ struct Graph
         }
         return res;
     }
+    bool isBG()
+    {
+        _c.assign(_n, -1);
+        queue<int> q;
+        _c[0] = 0;
+        q.push(0);
+        while (q.size())
+        {
+            int t = q.front();
+            q.pop();
+            for (int n : _g[t])
+            {
+                if (_c[n] == _c[t])
+                    return false;
+                if (_c[n] == -1)
+                {
+                    _c[n] = !_c[t];
+                    q.push(n);
+                }
+            }
+        }
+        return true;
+    }
+    vi c()
+    {
+        return _c;
+    }
 
 private:
     int _n;
     vvi _g;
-    vi _prev;
+    vi _prev, _c;
 };
