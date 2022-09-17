@@ -185,6 +185,5 @@ private:
 
 struct Tree : Graph
 {
-    Tree(int n = 0) : Graph(n) { load(n - 1); }
-    Tree(int n, vector<pair<int, int>> e) : Graph(n, e) {}
+    Tree(int n = 0) : Graph(n, n - 1) {}
 };
