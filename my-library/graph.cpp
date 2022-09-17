@@ -133,11 +133,28 @@ struct Graph
     {
         return _c;
     }
+    vvi doubling(int r)
+    {
+        assert(0 <= r && r < _n);
+        _parent.assign(_n, vi(30, -1));
+        dis(r);
+        for (int i = 0; i < _n; i++)
+            _parent[i][0] = _prev[i];
+        for (int j = 0; j < 30; j++)
+            for (int i = 0; i < _n; i++)
+            {
+                int tp = _parent[i][j];
+                if (tp != -1)
+                    _parent[i][j + 1] = _parent[tp][j];
+            }
+        return _parent;
+    }
 
 private:
     int _n;
     vvi _g;
     vi _prev, _c;
+    vvi _g, _parent;
 };
 
 struct Tree : Graph
