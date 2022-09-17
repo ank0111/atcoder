@@ -5,7 +5,7 @@ struct Graph
 {
     using vi = vector<int>;
     using vvi = vector<vi>;
-    Graph(int n = 0) : _n(n), _g(n), _dis(n, INT_MAX), _prev(n, -1) {}
+    Graph(int n = 0) : _n(n), _g(n) {}
     void resize(int n)
     {
         _n = n;
@@ -48,7 +48,9 @@ struct Graph
     {
         assert(0 <= s && s < _n);
         queue<int> q;
-        _dis[s] = 0;
+        vi dis(_n, INT_MAX);
+        _prev.assign(_n, -1);
+        dis[s] = 0;
         q.push(s);
         while (q.size())
         {
@@ -56,15 +58,15 @@ struct Graph
             q.pop();
             for (int n : _g[t])
             {
-                if (_dis[n] > _dis[t] + 1)
+                if (dis[n] > dis[t] + 1)
                 {
-                    _dis[n] = _dis[t] + 1;
+                    dis[n] = dis[t] + 1;
                     _prev[n] = t;
                     q.push(n);
                 }
             }
         }
-        return _dis;
+        return dis;
     }
     vi prev()
     {
@@ -72,11 +74,11 @@ struct Graph
     }
     tuple<int, int, int> tdia()
     {
-        dis();
-        int s = max_element(_dis.begin(), _dis.end()) - _dis.begin();
-        dis(s);
-        int t = max_element(_dis.begin(), _dis.end()) - _dis.begin();
-        return {_dis[t], s, t};
+        vi d = dis();
+        int s = max_element(d.begin(), d.end()) - d.begin();
+        d = dis(s);
+        int t = max_element(d.begin(), d.end()) - d.begin();
+        return {d[t], s, t};
     }
     vi tpsort()
     {
@@ -106,6 +108,6 @@ struct Graph
 
 private:
     int _n;
-    vi _dis, _prev;
     vvi _g;
+    vi _prev;
 };
