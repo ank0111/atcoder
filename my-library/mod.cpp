@@ -6,7 +6,12 @@ struct Mod
     using ll = long long;
     using vl = vector<ll>;
     Mod(int m) : _m(m) {}
-    void set_mod(int m) { _m = m;_F.resize(1),_F.resize(0); }
+    void set_mod(int m)
+    {
+        _m = m;
+        _F.resize(1);
+        _invF.resize(0);
+    }
     ll pow(ll x, ll n)
     {
         if (n < 0)
