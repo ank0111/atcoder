@@ -194,3 +194,125 @@ struct Tree : Graph
 protected:
     vvi _parent;
 };
+
+struct CGraph
+{
+    using ll = long long;
+    using vl = vector<ll>;
+    using vi = vector<int>;
+    using vvp = vector<vector<pair<int, ll>>>;
+    using edge = tuple<int, int, ll>;
+
+    CGraph(int n = 0, int m = 0, bool d = false) : _n(n), _g(n) { load(m, d); }
+    CGraph(int n, vector<edge> e, bool d = false) : CGraph(n) { load(e, d); }
+    void resize(int n)
+    {
+        _n = n;
+        _g.resize(n);
+    }
+    void load(int m, bool d = false)
+    {
+        for (int i = 0; i < m; i++)
+        {
+            int u, v;
+            ll c;
+            cin >> u >> v >> c;
+            u--, v--;
+            add_edge(u, v, c);
+            if (!d)
+                add_edge(v, u, c);
+        }
+    }
+    void load(vector<edge> e, bool d = false)
+    {
+        for (auto [u, v, c] : e)
+        {
+            add_edge(u, v, c);
+            if (!d)
+                add_edge(v, u, c);
+        }
+    }
+    void add_edge(int from, int to, ll cost)
+    {
+        assert(0 <= from && from < _n);
+        assert(0 <= to && to < _n);
+        _g[from].push_back({to, cost});
+    }
+    int size()
+    {
+        return _n;
+    }
+    vvp graph()
+    {
+        return _g;
+    }
+    vl dijk(int s)
+    {
+        vl dis(_n, LLONG_MAX);
+        _prev.assign(_n, -1);
+        priority_queue<pair<ll, int>, vector<pair<ll, int>>, greater<pair<ll, int>>> q;
+        dis[s] = 0;
+        q.push({0, s});
+        while (q.size())
+        {
+            auto [tc, t] = q.top();
+            q.pop();
+            if (tc != dis[t])
+                continue;
+            for (auto [n, c] : _g[t])
+            {
+                if (dis[n] > tc + c)
+                {
+                    dis[n] = tc + c;
+                    _prev[n] = t;
+                    q.push({dis[n], n});
+                }
+            }
+        }
+        return dis;
+    }
+    vl bellfo(int s)
+    {
+        vl dis(_n, LLONG_MAX);
+        dis[s] = 0;
+        for (int i = 0; i < 2 * _n; i++)
+        {
+            for (int t = 0; t < _n; t++)
+            {
+                if (dis[t] == LLONG_MAX)
+                    continue;
+                for (auto [n, c] : _g[t])
+                {
+                    if (dis[t] == LLONG_MIN)
+                    {
+                        dis[n] = LLONG_MIN;
+                        _prev[n] = t;
+                    }
+                    else if (dis[n] > dis[t] + c)
+                    {
+                        if (i >= _n - 1)
+                        {
+                            dis[n] = LLONG_MIN;
+                            _prev[n] = t;
+                        }
+                        else
+                        {
+                            dis[n] = dis[t] + c;
+                            _prev[n] = t;
+                        }
+                    }
+                }
+            }
+        }
+        return dis;
+    }
+    vi prev()
+    {
+        return _prev;
+    }
+
+private:
+    int _n;
+    vi _prev;
+    vvp _g;
+};
