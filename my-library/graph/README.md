@@ -160,7 +160,7 @@ Tree(int n=0)
 tuple<int,int,int> tdia()
 ```
 
-木の直径 $d$ 、直径の両端 $s,\ t$ を $ \lbrace \ d,\ s,\ t\  \rbrace $ の形式で返します。
+木の直径 $d$ 、直径の両端 $s,\ t$ を $\lbrace \ d,\ s,\ t\ \rbrace$ の形式で返します。
 
 ## ダブリング
 
@@ -170,7 +170,7 @@ vector<vector<int>> doubling(int r)
 
 $r$ を根とした木のダブリング処理の結果を返します。
 
-`result[i][j]` は頂点 $i$ の$2^j$ 個先の親頂点を表します。
+`result[i][j]` は頂点 $i$ の $2^j$ 個先の親頂点を表します。
 
 **制約**
 
