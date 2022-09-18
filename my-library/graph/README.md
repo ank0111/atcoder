@@ -100,8 +100,6 @@ int size()
 
 ## 各頂点までの距離を計算する
 
-<a id="dis"></a>
-
 ```cpp
 vector<int> dis(int s=0)
 ```
@@ -116,7 +114,7 @@ vector<int> dis(int s=0)
 vector<int> prev()
 ```
 
-直前に実行した [`dis`](#dis) の計算過程で得られた各頂点の直接の親頂点のリストを返します。
+直前に実行した [`dis`](#各頂点までの距離を計算する) の計算過程で得られた各頂点の直接の親頂点のリストを返します。
 
 ## トポロジカルソート
 
@@ -130,8 +128,6 @@ vector<int> tpsort()
 
 ## $2$ 部グラフか調べる
 
-<a id="isBG"></a>
-
 ```cpp
 bool isBG()
 ```
@@ -142,7 +138,7 @@ bool isBG()
 vector<int> color()
 ```
 
-直前に実行した [`isBG`](#isBG) の計算過程で得られた各頂点の色分けリストを返します。
+直前に実行した [`isBG`](#2-部グラフか調べる) の計算過程で得られた各頂点の色分けリストを返します。
 
 # Tree : Graph
 
@@ -164,8 +160,29 @@ Tree(int n=0)
 tuple<int,int,int> tdia()
 ```
 
-グラフが木であるとき、木の直径 $d$ 、直径の両端 $s,\ t$ を $ \lbrace \ d,\ s,\ t\  \rbrace $ の形式で返します。
+木の直径 $d$ 、直径の両端 $s,\ t$ を $ \lbrace \ d,\ s,\ t\  \rbrace $ の形式で返します。
 
 ## ダブリング
 
-整備中
+```cpp
+vector<vector<int>> doubling(int r)
+```
+
+$r$ を根とした木のダブリング処理の結果を返します。
+
+`result[i][j]` は頂点 $i$ の$2^j$ 個先の親頂点を表します。
+
+**制約**
+
+- $0 \leq r < n$
+
+```cpp
+int lca(int a, int b)
+```
+
+直前に実行した [`doubling(r)`](#ダブリング) の結果を利用して、頂点 $a,\ b$ の最小共通祖先を返します。
+
+**制約**
+
+- $0 \leq a < n$
+- $0 \leq b < n$
