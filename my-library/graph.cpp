@@ -47,7 +47,7 @@ struct Graph
     {
         return _g;
     }
-    vi dis(int s = 0)
+    vi dis(int s)
     {
         assert(0 <= s && s < _n);
         queue<int> q;
@@ -139,11 +139,11 @@ struct Tree : Graph
     Tree(int n = 0) : Graph(n, n - 1) {}
     tuple<int, int, int> dia()
     {
-        vi d = dis();
-        int s = max_element(d.begin(), d.end()) - d.begin();
-        d = dis(s);
-        int t = max_element(d.begin(), d.end()) - d.begin();
-        return {d[t], s, t};
+        dis(0);
+        int s = max_element(_dis.begin(), _dis.end()) - _dis.begin();
+        dis(s);
+        int t = max_element(_dis.begin(), _dis.end()) - _dis.begin();
+        return {_dis[t], s, t};
     }
     vvi doubling(int r)
     {
