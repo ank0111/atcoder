@@ -1,3 +1,4 @@
+<script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js" id="MathJax-script"></script>
 # Graph
 
 グラフ関連の操作をまとめています。
