@@ -261,6 +261,7 @@ struct CGraph
                 continue;
             for (auto [n, c] : _g[t])
             {
+                assert(c >= 0);
                 if (dis[n] > tc + c)
                 {
                     dis[n] = tc + c;
