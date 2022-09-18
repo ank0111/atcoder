@@ -14,8 +14,7 @@ struct Mod
     }
     ll pow(ll x, ll n)
     {
-        if (n < 0)
-            return 0;
+        assert(n >= 0);
         if (n == 0)
             return 1;
         x %= _m;
@@ -40,13 +39,19 @@ struct Mod
         }
         return _invF[x];
     }
-    ll c(int n, int r)
+    ll P(int n, int r)
+    {
+        if (min(n, r) < 0 || n < r)
+            return 0;
+        return F(n) * invF(n - r) % _m;
+    }
+    ll C(int n, int r)
     {
         if (min(n, r) < 0 || n < r)
             return 0;
         return F(n) * invF(r) % _m * invF(n - r) % _m;
     }
-    ll h(int n, int r) { return c(n + r - 1, r); }
+    ll H(int n, int r) { return C(n + r - 1, r); }
 
 private:
     int _m;
