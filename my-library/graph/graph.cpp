@@ -163,6 +163,8 @@ struct Tree : Graph
     }
     int lca(int a, int b)
     {
+        assert(0 <= a && a < _n);
+        assert(0 <= b && b < _n);
         if (_dis[a] > _dis[b])
             swap(a, b);
         for (int i = 0; i < 30; i++)
