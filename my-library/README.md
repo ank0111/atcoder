@@ -1,3 +1,3 @@
 # 競プロ用ライブラリ（主にAtCoder）
 
-[ドキュメントはこちら](../docs/)
+[ドキュメントはこちら](https://ank0111.github.io/atcoder/)
