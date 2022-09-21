@@ -103,7 +103,7 @@ using vvm = vector<vm>;
 using vvvm = vector<vvm>;
 #pragma endregion using
 //*
-const int mod=998244353;
+const int mod = 998244353;
 //*/const int mod = 1e9 + 7;
 #pragma region library
 #pragma region math
@@ -188,8 +188,9 @@ ll com(int n, int r)
 ll sqrtll(ll x)
 {
   ll r = round(sqrt((double)x));
-  ll rr=r*r;
-  if(rr>x)r--;
+  ll rr = r * r;
+  if (rr > x)
+    r--;
   return r;
 }
 template <typename T, typename U>
