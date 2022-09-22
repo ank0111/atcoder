@@ -1,4 +1,4 @@
-# Graph
+# Graph : vector<vector<int>>
 
 グラフ関連の操作をまとめています。
 
@@ -20,13 +20,19 @@ $n$ 頂点のグラフを作成します。
 
 グラフ作成時に、[`load(e, d)`](#loade) を実行します。
 
+```cpp
+Graph g(vector<vector<int>> v)
+```
+
+$2$ 次元ベクトル $v$ を元にグラフを作成します。
+
 ## グラフを作成する
 
 ```cpp
 void resize(int n)
 ```
 
-グラフの頂点数を $n$ に設定する。
+グラフの頂点数を $n$ に設定します。
 
 <a id="loadm"></a>
 
@@ -70,20 +76,6 @@ $u,\ v$ は $(0-indexed)$ です。
 
 - $0 \leq from < n$
 - $0 \leq to < n$
-
-## グラフを取得する
-
-```cpp
-vector<vector<int>> graph()
-```
-
-グラフを隣接リストの形式で返します。
-
-```cpp
-int size()
-```
-
-グラフの頂点数を返します。
 
 ## 各頂点までの距離を計算する
 
@@ -141,6 +133,12 @@ Tree(int n=0)
 
 [`Graph(n,n-1)`](#コンストラクタ) を実行します。
 
+```cpp
+Tree(vector<vector<int>> t)
+```
+
+[`Graph(t)`](#コンストラクタ) を実行します。
+
 ## 木の直径を求める
 
 ```cpp
@@ -174,7 +172,7 @@ int lca(int a, int b)
 - $0 \leq a < n$
 - $0 \leq b < n$
 
-# CGraph
+# CGraph : vector<vector<pair<int, ll>>>
 
 重み付きグラフ関連の操作をまとめています。
 
@@ -184,17 +182,23 @@ int lca(int a, int b)
 CGraph g(int n=0,int m=0,bool d=false)
 ```
 
-$n$ 頂点のグラフを作成します。
+$n$ 頂点の重み付きグラフを作成します。
 
-グラフ作成時に、[`load(m, d)`](#loadm) を実行します。
+グラフ作成時に、[`load(m, d)`](#loadmc) を実行します。
 
 ```cpp
-Graph g(int n,vector<tuple<int,int,ll>> e,bool d=false)
+CGraph g(int n,vector<tuple<int,int,ll>> e,bool d=false)
 ```
 
-$n$ 頂点のグラフを作成します。
+$n$ 頂点の重み付きグラフを作成します。
 
-グラフ作成時に、[`load(e, d)`](#loade) を実行します。
+グラフ作成時に、[`load(e, d)`](#loadec) を実行します。
+
+```cpp
+CGraph g(vector<vector<pair<int, ll>>> v)
+```
+
+$2$ 次元ベクトル $v$ を元に重み付きグラフを作成します。
 
 ## グラフを作成する
 
@@ -202,9 +206,9 @@ $n$ 頂点のグラフを作成します。
 void resize(int n)
 ```
 
-グラフの頂点数を $n$ に設定する。
+グラフの頂点数を $n$ に設定します。
 
-<a id="loadm"></a>
+<a id="loadmc"></a>
 
 ```cpp
 void load(int m,bool d=false)
@@ -219,7 +223,7 @@ $d$ が $true$ のときは、 $u$ から $v$ に向けた辺のみ作成しま�
 - $0 < u \leq n$
 - $0 < v \leq n$
 
-<a id="loade"></a>
+<a id="loadec"></a>
 
 ```cpp
 void load(vector<tuple<int,int,ll>> e,bool d=false)
@@ -246,20 +250,6 @@ $u,\ v$ は $(0-indexed)$ です。
 
 - $0 \leq from < n$
 - $0 \leq to < n$
-
-## グラフを取得する
-
-```cpp
-vector<vector<pair<int,ll>>> graph()
-```
-
-グラフを隣接リストの形式で返します。
-
-```cpp
-int size()
-```
-
-グラフの頂点数を返します。
 
 ## 各頂点までの距離を計算する
 
