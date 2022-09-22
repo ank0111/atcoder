@@ -1,16 +1,17 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-struct Graph
+struct Graph : vector<vector<int>>
 {
     using vi = vector<int>;
     using vvi = vector<vi>;
-    Graph(int n = 0, int m = 0, bool d = false) : _n(n), _g(n) { load(m, d); }
-    Graph(int n, vector<pair<int, int>> e, bool d = false) : _n(n), _g(n) { load(e, d); }
+    Graph(int n = 0, int m = 0, bool d = false) : _n(n), vvi(n) { load(m, d); }
+    Graph(int n, vector<pair<int, int>> e, bool d = false) : Graph(n) { load(e, d); }
+    Graph(vvi g) : vvi(g) { _n = g.size(); }
     void resize(int n)
     {
         _n = n;
-        _g.resize(n);
+        vvi::resize(n);
     }
     void load(int m, bool d = false)
     {
@@ -37,15 +38,7 @@ struct Graph
     {
         assert(0 <= from && from < _n);
         assert(0 <= to && to < _n);
-        _g[from].push_back(to);
-    }
-    int size()
-    {
-        return _n;
-    }
-    vvi graph()
-    {
-        return _g;
+        (*this)[from].push_back(to);
     }
     vi dis(int s)
     {
@@ -59,7 +52,7 @@ struct Graph
         {
             int t = q.front();
             q.pop();
-            for (int n : _g[t])
+            for (int n : (*this)[t])
             {
                 if (_dis[n] > _dis[t] + 1)
                 {
@@ -79,7 +72,7 @@ struct Graph
     {
         vi in(_n);
         for (int i = 0; i < _n; i++)
-            for (int j : _g[i])
+            for (int j : (*this)[i])
                 in[j]++;
         queue<int> q;
         for (int i = 0; i < _n; i++)
@@ -90,7 +83,7 @@ struct Graph
         {
             int t = q.front();
             q.pop();
-            for (int n : _g[t])
+            for (int n : (*this)[t])
             {
                 in[n]--;
                 if (!in[n])
@@ -110,7 +103,7 @@ struct Graph
         {
             int t = q.front();
             q.pop();
-            for (int n : _g[t])
+            for (int n : (*this)[t])
             {
                 if (_c[n] == _c[t])
                     return false;
@@ -130,13 +123,13 @@ struct Graph
 
 protected:
     int _n;
-    vvi _g;
     vi _dis, _prev, _c;
 };
 
 struct Tree : Graph
 {
     Tree(int n = 0) : Graph(n, n - 1) {}
+    Tree(vvi t) : Graph(t) {}
     tuple<int, int, int> dia()
     {
         dis(0);
@@ -166,7 +159,7 @@ struct Tree : Graph
         assert(0 <= a && a < _n);
         assert(0 <= b && b < _n);
         if (_dis[a] > _dis[b])
-            swap(a, b);
+            std::swap(a, b);
         for (int i = 0; i < 30; i++)
         {
             if ((_dis[b] - _dis[a]) >> i & 1)
@@ -195,7 +188,7 @@ protected:
     vvi _parent;
 };
 
-struct CGraph
+struct CGraph : vector<vector<pair<int, long long>>>
 {
     using ll = long long;
     using vl = vector<ll>;
@@ -203,12 +196,13 @@ struct CGraph
     using vvp = vector<vector<pair<int, ll>>>;
     using edge = tuple<int, int, ll>;
 
-    CGraph(int n = 0, int m = 0, bool d = false) : _n(n), _g(n) { load(m, d); }
+    CGraph(int n = 0, int m = 0, bool d = false) : _n(n), vvp(n) { load(m, d); }
     CGraph(int n, vector<edge> e, bool d = false) : CGraph(n) { load(e, d); }
+    CGraph(vvp g) : vvp(g) { _n = g.size(); }
     void resize(int n)
     {
         _n = n;
-        _g.resize(n);
+        vvp::resize(n);
     }
     void load(int m, bool d = false)
     {
@@ -236,15 +230,7 @@ struct CGraph
     {
         assert(0 <= from && from < _n);
         assert(0 <= to && to < _n);
-        _g[from].push_back({to, cost});
-    }
-    int size()
-    {
-        return _n;
-    }
-    vvp graph()
-    {
-        return _g;
+        (*this)[from].push_back({to, cost});
     }
     vl dijk(int s)
     {
@@ -259,7 +245,7 @@ struct CGraph
             q.pop();
             if (tc != dis[t])
                 continue;
-            for (auto [n, c] : _g[t])
+            for (auto [n, c] : (*this)[t])
             {
                 assert(c >= 0);
                 if (dis[n] > tc + c)
@@ -282,7 +268,7 @@ struct CGraph
             {
                 if (dis[t] == LLONG_MAX)
                     continue;
-                for (auto [n, c] : _g[t])
+                for (auto [n, c] : (*this)[t])
                 {
                     if (dis[t] == LLONG_MIN)
                     {
@@ -315,5 +301,4 @@ struct CGraph
 private:
     int _n;
     vi _prev;
-    vvp _g;
 };
