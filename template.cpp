@@ -782,12 +782,74 @@ const int dx[9] = {0, 1, 0, -1, 1, 1, -1, -1, 0}, dy[9] = {1, 0, -1, 0, 1, -1, 1
 // const int dx[9]={1,1,0,-1,-1,-1,0,1,0},dy[9]={0,1,1,1,0,-1,-1,-1,0};
 bool canmove(int nx, int ny) { return 0 <= nx && nx < H && 0 <= ny && ny < W; }
 
-using tpl = tuple<int, int, int>;
+using tpl = tuple<int, int, int, int>;
 using vt = vector<tpl>;
+vector<set<int>> r(100), c(100);
+
+int op(int a, int b) { return max(a, b); }
+int e() { return 0; }
+int mapping(int f, int x) { return f == INF ? x : f; }
+int composition(int f, int g) { return f == INF ? g : f; }
+int id() { return INF; }
 
 int main()
 {
   fast_io;
   set_mod(mod);
-  cin >> N >> M;
+  input(N, M);
+  cinvi2(x, y, M);
+  queue<pi> q;
+  rep(i, M)
+  {
+    r[x[i]].insert(y[i]);
+    c[y[i]].insert(x[i]);
+    q.push({x[i], y[i]});
+  }
+  vvi ans;
+  vector er(N, lazy_segtree<int, op, e, int, mapping, composition, id>(N)), ec(N, lazy_segtree<int, op, e, int, mapping, composition, id>(N));
+  while (q.size())
+  {
+    auto [x1, y1] = q.front();
+    q.pop();
+    int x2, y2, x3, y3, x4, y4;
+    x2 = x1;
+    auto itr = upper_bound(ALL(r[x1]), y1);
+
+    if (itr != r[x1].end())
+    {
+      y2 = *itr;
+      auto itr1 = upper_bound(ALL(c[y1]), x1);
+      auto itr2 = upper_bound(ALL(c[y2]), x2);
+      if (itr2 != c[y2].end())
+      {
+        if (itr1 == c[y1].end() || *itr2 < *itr1)
+        {
+          x3 = *itr2;
+          y3 = y2;
+          x4 = x3;
+          y4 = y1;
+          auto itr4 = upper_bound(ALL(r[x4]), y4);
+          if (*itr4 == y3)
+          {
+            if (!er[x1].prod(y1, y2) &&
+                !ec[y2].prod(x2, x3) &&
+                !er[x4].prod(y4, y3) &&
+                !ec[y1].prod(x1, x4))
+            {
+              ans.pb(vi{x4, y4, x1, y1, x2, y2, x3, y3});
+              er[x1].apply(y1, y2, 1);
+              er[x4].apply(y4, y3, 1);
+              ec[y1].apply(x1, x4, 1);
+              ec[y2].apply(x2, x3, 1);
+              q.push({x4, y4});
+              r[x4].insert(y4);
+              c[y4].insert(x4);
+            }
+          }
+        }
+      }
+    }
+  }
+  cout << ans.size() << endl;
+  print(ans);
 }
