@@ -786,7 +786,6 @@ bool canmove(int nx, int ny) { return 0 <= nx && nx < H && 0 <= ny && ny < W; }
 
 using tpl = tuple<int, int, int, int>;
 using vt = vector<tpl>;
-vector<set<int>> r(100), c(100);
 
 int op(int a, int b) { return max(a, b); }
 int e() { return 0; }
@@ -805,16 +804,29 @@ int main()
   const auto start = now();
   const int limit = 4500;
   input(N, M);
+  auto XY = [&](int x, int y)
+  {
+    return pi{x - y + N, x + y};
+  };
+  auto xy = [&](int X, int Y)
+  {
+    return pi{(X + Y - N) / 2, (Y - X + N) / 2};
+  };
   cinvi2(x, y, M);
   deque<pi> q;
+  vector<set<int>> r(N), c(N), dr(200), dc(200);
   rep(i, M)
   {
+    auto [X, Y] = XY(x[i], y[i]);
     r[x[i]].insert(y[i]);
     c[y[i]].insert(x[i]);
+    dr[X].insert(Y);
+    dc[Y].insert(X);
     q.push_back({x[i], y[i]});
   }
   vvi ans;
   vector er(N, lazy_segtree<int, op, e, int, mapping, composition, id>(N)), ec(N, lazy_segtree<int, op, e, int, mapping, composition, id>(N));
+  vector edr(200, lazy_segtree<int, op, e, int, mapping, composition, id>(200)), edc(200, lazy_segtree<int, op, e, int, mapping, composition, id>(200));
 
   auto check = [&](int x1, int y1, int x2, int y2)
   {
@@ -837,49 +849,45 @@ int main()
       return itr == c[y1].end() || *itr >= x2;
     }
   };
+  auto checkd = [&](int x1, int y1, int x2, int y2)
+  {
+    if (x1 == x2)
+    {
+      if (y1 > y2)
+        swap(y1, y2);
+      if (edr[x1].prod(y1, y2))
+        return false;
+      auto itr = upper_bound(ALL(dr[x1]), y1);
+      return itr == dr[x1].end() || *itr >= y2;
+    }
+    else
+    {
+      if (x1 > x2)
+        swap(x1, x2);
+      if (edc[y1].prod(x1, x2))
+        return false;
+      auto itr = upper_bound(ALL(dc[y1]), x1);
+      return itr == dc[y1].end() || *itr >= x2;
+    }
+  };
 
   while (q.size())
   {
     auto [x1, y1] = q.front();
     q.pop_front();
-    int x2, y2, x3, y3, x4, y4;
-    auto itr2 = upper_bound(ALL(r[x1]), y1);
-    if (itr2 != r[x1].end())
     {
-      x2 = x1;
-      y2 = *itr2;
-      if (check(x1, y1, x2, y2))
+      int x2, y2, x3, y3, x4, y4;
+      auto itr2 = upper_bound(ALL(r[x1]), y1);
+      if (itr2 != r[x1].end())
       {
-        bool f = true;
-        auto itr3 = upper_bound(ALL(c[y2]), x2);
-        if (itr3 != c[y2].end())
+        x2 = x1;
+        y2 = *itr2;
+        if (check(x1, y1, x2, y2))
         {
-          x3 = *itr3;
-          y3 = y2;
-          if (check(x2, y2, x3, y3))
+          bool f = true;
+          auto itr3 = upper_bound(ALL(c[y2]), x2);
+          if (itr3 != c[y2].end())
           {
-            x4 = x3;
-            y4 = y1;
-            if (!c[y4].count(x4) && check(x3, y3, x4, y4) && check(x4, y4, x1, y1))
-            {
-              ans.pb(vi{x4, y4, x1, y1, x2, y2, x3, y3});
-              er[x1].apply(y1, y2, 1);
-              er[x4].apply(y4, y3, 1);
-              ec[y1].apply(x1, x4, 1);
-              ec[y2].apply(x2, x3, 1);
-              r[x4].insert(y4);
-              c[y4].insert(x4);
-              q.push_front({x4, y4});
-              f = false;
-            }
-          }
-        }
-        if (f)
-        {
-          itr3--;
-          if (itr3 != c[y2].begin())
-          {
-            itr3--;
             x3 = *itr3;
             y3 = y2;
             if (check(x2, y2, x3, y3))
@@ -891,8 +899,222 @@ int main()
                 ans.pb(vi{x4, y4, x1, y1, x2, y2, x3, y3});
                 er[x1].apply(y1, y2, 1);
                 er[x4].apply(y4, y3, 1);
-                ec[y1].apply(x4, x1, 1);
-                ec[y2].apply(x3, x2, 1);
+                ec[y1].apply(x1, x4, 1);
+                ec[y2].apply(x2, x3, 1);
+                r[x4].insert(y4);
+                c[y4].insert(x4);
+                auto [X4, Y4] = XY(x4, y4);
+                dr[X4].insert(Y4);
+                dc[Y4].insert(X4);
+                q.push_front({x4, y4});
+                f = false;
+              }
+            }
+          }
+          if (f)
+          {
+            itr3--;
+            if (itr3 != c[y2].begin())
+            {
+              itr3--;
+              x3 = *itr3;
+              y3 = y2;
+              if (check(x2, y2, x3, y3))
+              {
+                x4 = x3;
+                y4 = y1;
+                if (!c[y4].count(x4) && check(x3, y3, x4, y4) && check(x4, y4, x1, y1))
+                {
+                  ans.pb(vi{x4, y4, x1, y1, x2, y2, x3, y3});
+                  er[x1].apply(y1, y2, 1);
+                  er[x4].apply(y4, y3, 1);
+                  ec[y1].apply(x4, x1, 1);
+                  ec[y2].apply(x3, x2, 1);
+                  r[x4].insert(y4);
+                  c[y4].insert(x4);
+                  auto [X4, Y4] = XY(x4, y4);
+                  dr[X4].insert(Y4);
+                  dc[Y4].insert(X4);
+                  q.push_front({x4, y4});
+                }
+              }
+            }
+          }
+        }
+      }
+      itr2 = upper_bound(ALL(c[y1]), x1);
+      if (itr2 != c[y1].end())
+      {
+        x2 = *itr2;
+        y2 = y1;
+        if (check(x1, y1, x2, y2))
+        {
+          auto itr3 = upper_bound(ALL(r[x2]), y2);
+          if (itr3 != r[x2].end())
+          {
+            x3 = x2;
+            y3 = *itr3;
+            if (check(x2, y2, x3, y3))
+            {
+              x4 = x1;
+              y4 = y3;
+              if (!c[y4].count(x4) && check(x3, y3, x4, y4) && check(x4, y4, x1, y1))
+              {
+                ans.pb(vi{x4, y4, x1, y1, x2, y2, x3, y3});
+                er[x1].apply(y1, y4, 1);
+                er[x2].apply(y2, y3, 1);
+                ec[y1].apply(x1, x2, 1);
+                ec[y4].apply(x4, x3, 1);
+                r[x4].insert(y4);
+                c[y4].insert(x4);
+                auto [X4, Y4] = XY(x4, y4);
+                dr[X4].insert(Y4);
+                dc[Y4].insert(X4);
+                q.push_front({x4, y4});
+              }
+            }
+          }
+        }
+      }
+      itr2 = lower_bound(ALL(c[y1]), x1);
+      if (itr2 != c[y1].begin())
+      {
+        itr2--;
+        x2 = *itr2;
+        y2 = y1;
+        if (check(x1, y1, x2, y2))
+        {
+          auto itr3 = upper_bound(ALL(r[x2]), y2);
+          if (itr3 != r[x2].end())
+          {
+            x3 = x2;
+            y3 = *itr3;
+            if (check(x2, y2, x3, y3))
+            {
+              x4 = x1;
+              y4 = y3;
+              if (!c[y4].count(x4) && check(x3, y3, x4, y4) && check(x4, y4, x1, y1))
+              {
+                ans.pb(vi{x4, y4, x1, y1, x2, y2, x3, y3});
+                er[x1].apply(y1, y4, 1);
+                er[x2].apply(y2, y3, 1);
+                ec[y1].apply(x2, x1, 1);
+                ec[y4].apply(x3, x4, 1);
+                r[x4].insert(y4);
+                c[y4].insert(x4);
+                auto [X4, Y4] = XY(x4, y4);
+                dr[X4].insert(Y4);
+                dc[Y4].insert(X4);
+                q.push_front({x4, y4});
+              }
+            }
+          }
+        }
+      }
+    }
+    {
+      auto [X1, Y1] = XY(x1, y1);
+      int X2, Y2, X3, Y3, X4, Y4;
+      auto itr2 = upper_bound(ALL(dr[X1]), Y1);
+      if (itr2 != dr[X1].end())
+      {
+        X2 = X1;
+        Y2 = *itr2;
+        if (checkd(X1, Y1, X2, Y2))
+        {
+          bool f = true;
+          auto itr3 = upper_bound(ALL(dc[Y2]), X2);
+          if (itr3 != dc[Y2].end())
+          {
+            X3 = *itr3;
+            Y3 = Y2;
+            if (checkd(X2, Y2, X3, Y3))
+            {
+              X4 = X3;
+              Y4 = Y1;
+              auto [x4, y4] = xy(X4, Y4);
+              if (0 <= x4 && x4 < N && 0 <= y4 && y4 < N && !c[y4].count(x4) && checkd(X3, Y3, X4, Y4) && checkd(X4, Y4, X1, Y1))
+              {
+                auto [x1, y1] = xy(X1, Y1);
+                auto [x2, y2] = xy(X2, Y2);
+                auto [x3, y3] = xy(X3, Y3);
+                ans.pb(vi{x4, y4, x1, y1, x2, y2, x3, y3});
+                edr[X1].apply(Y1, Y2, 1);
+                edr[X4].apply(Y4, Y3, 1);
+                edc[Y1].apply(X1, X4, 1);
+                edc[Y2].apply(X2, X3, 1);
+                dr[X4].insert(Y4);
+                dc[Y4].insert(X4);
+                r[x4].insert(y4);
+                c[y4].insert(x4);
+                q.push_front({x4, y4});
+                f = false;
+              }
+            }
+          }
+          if (f)
+          {
+            itr3--;
+            if (itr3 != dc[Y2].begin())
+            {
+              itr3--;
+              X3 = *itr3;
+              Y3 = Y2;
+              if (checkd(X2, Y2, X3, Y3))
+              {
+                X4 = X3;
+                Y4 = Y1;
+                auto [x4, y4] = xy(X4, Y4);
+                if (0 <= x4 && x4 < N && 0 <= y4 && y4 < N && !c[y4].count(x4) && checkd(X3, Y3, X4, Y4) && checkd(X4, Y4, X1, Y1))
+                {
+                  auto [x1, y1] = xy(X1, Y1);
+                  auto [x2, y2] = xy(X2, Y2);
+                  auto [x3, y3] = xy(X3, Y3);
+                  ans.pb(vi{x4, y4, x1, y1, x2, y2, x3, y3});
+                  edr[X1].apply(Y1, Y2, 1);
+                  edr[X4].apply(Y4, Y3, 1);
+                  edc[Y1].apply(X4, X1, 1);
+                  edc[Y2].apply(X3, X2, 1);
+                  dr[X4].insert(Y4);
+                  dc[Y4].insert(X4);
+                  r[x4].insert(y4);
+                  c[y4].insert(x4);
+                  q.push_front({x4, y4});
+                }
+              }
+            }
+          }
+        }
+      }
+      itr2 = upper_bound(ALL(dc[Y1]), X1);
+      if (itr2 != dc[Y1].end())
+      {
+        X2 = *itr2;
+        Y2 = Y1;
+        if (checkd(X1, Y1, X2, Y2))
+        {
+          auto itr3 = upper_bound(ALL(dr[X2]), Y2);
+          if (itr3 != dr[X2].end())
+          {
+            X3 = X2;
+            Y3 = *itr3;
+            if (checkd(X2, Y2, X3, Y3))
+            {
+              X4 = X1;
+              Y4 = Y3;
+              auto [x4, y4] = xy(X4, Y4);
+              if (0 <= x4 && x4 < N && 0 <= y4 && y4 < N && !c[y4].count(x4) && checkd(X3, Y3, X4, Y4) && checkd(X4, Y4, X1, Y1))
+              {
+                auto [x1, y1] = xy(X1, Y1);
+                auto [x2, y2] = xy(X2, Y2);
+                auto [x3, y3] = xy(X3, Y3);
+                ans.pb(vi{x4, y4, x1, y1, x2, y2, x3, y3});
+                edr[X1].apply(Y1, Y4, 1);
+                edr[X2].apply(Y2, Y3, 1);
+                edc[Y1].apply(X1, X2, 1);
+                edc[Y4].apply(X4, X3, 1);
+                dr[X4].insert(Y4);
+                dc[Y4].insert(X4);
                 r[x4].insert(y4);
                 c[y4].insert(x4);
                 q.push_front({x4, y4});
@@ -901,65 +1123,40 @@ int main()
           }
         }
       }
-    }
-    itr2 = upper_bound(ALL(c[y1]), x1);
-    if (itr2 != c[y1].end())
-    {
-      x2 = *itr2;
-      y2 = y1;
-      if (check(x1, y1, x2, y2))
+      itr2 = lower_bound(ALL(dc[Y1]), X1);
+      if (itr2 != dc[Y1].begin())
       {
-        auto itr3 = upper_bound(ALL(r[x2]), y2);
-        if (itr3 != r[x2].end())
+        itr2--;
+        X2 = *itr2;
+        Y2 = Y1;
+        if (checkd(X1, Y1, X2, Y2))
         {
-          x3 = x2;
-          y3 = *itr3;
-          if (check(x2, y2, x3, y3))
+          auto itr3 = upper_bound(ALL(dr[X2]), Y2);
+          if (itr3 != dr[X2].end())
           {
-            x4 = x1;
-            y4 = y3;
-            if (!c[y4].count(x4) && check(x3, y3, x4, y4) && check(x4, y4, x1, y1))
+            X3 = X2;
+            Y3 = *itr3;
+            if (checkd(X2, Y2, X3, Y3))
             {
-              ans.pb(vi{x4, y4, x1, y1, x2, y2, x3, y3});
-              er[x1].apply(y1, y4, 1);
-              er[x2].apply(y2, y3, 1);
-              ec[y1].apply(x1, x2, 1);
-              ec[y4].apply(x4, x3, 1);
-              r[x4].insert(y4);
-              c[y4].insert(x4);
-              q.push_front({x4, y4});
-            }
-          }
-        }
-      }
-    }
-    itr2 = lower_bound(ALL(c[y1]), x1);
-    if (itr2 != c[y1].begin())
-    {
-      itr2--;
-      x2 = *itr2;
-      y2 = y1;
-      if (check(x1, y1, x2, y2))
-      {
-        auto itr3 = upper_bound(ALL(r[x2]), y2);
-        if (itr3 != r[x2].end())
-        {
-          x3 = x2;
-          y3 = *itr3;
-          if (check(x2, y2, x3, y3))
-          {
-            x4 = x1;
-            y4 = y3;
-            if (!c[y4].count(x4) && check(x3, y3, x4, y4) && check(x4, y4, x1, y1))
-            {
-              ans.pb(vi{x4, y4, x1, y1, x2, y2, x3, y3});
-              er[x1].apply(y1, y4, 1);
-              er[x2].apply(y2, y3, 1);
-              ec[y1].apply(x2, x1, 1);
-              ec[y4].apply(x3, x4, 1);
-              r[x4].insert(y4);
-              c[y4].insert(x4);
-              q.push_front({x4, y4});
+              X4 = X1;
+              Y4 = Y3;
+              auto [x4, y4] = xy(X4, Y4);
+              if (0 <= x4 && x4 < N && 0 <= y4 && y4 < N && !c[y4].count(x4) && checkd(X3, Y3, X4, Y4) && checkd(X4, Y4, X1, Y1))
+              {
+                auto [x1, y1] = xy(X1, Y1);
+                auto [x2, y2] = xy(X2, Y2);
+                auto [x3, y3] = xy(X3, Y3);
+                ans.pb(vi{x4, y4, x1, y1, x2, y2, x3, y3});
+                edr[X1].apply(Y1, Y4, 1);
+                edr[X2].apply(Y2, Y3, 1);
+                edc[Y1].apply(X2, X1, 1);
+                edc[Y4].apply(X3, X4, 1);
+                dr[X4].insert(Y4);
+                dc[Y4].insert(X4);
+                r[x4].insert(y4);
+                c[y4].insert(x4);
+                q.push_front({x4, y4});
+              }
             }
           }
         }
