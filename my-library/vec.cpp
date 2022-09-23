@@ -41,11 +41,3 @@ namespace vec
         return ret;
     }
 }
-
-using vi = vector<int>;
-using namespace vec;
-
-int main()
-{
-    vi v{0, 2, 4, 5, 2};
-}
