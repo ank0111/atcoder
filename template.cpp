@@ -807,83 +807,151 @@ int main()
   }
   vvi ans;
   vector er(N, lazy_segtree<int, op, e, int, mapping, composition, id>(N)), ec(N, lazy_segtree<int, op, e, int, mapping, composition, id>(N));
+
+  auto check = [&](int x1, int y1, int x2, int y2)
+  {
+    if (x1 == x2)
+    {
+      if (y1 > y2)
+        swap(y1, y2);
+      if (er[x1].prod(y1, y2))
+        return false;
+      auto itr = upper_bound(ALL(r[x1]), y1);
+      return itr == r[x1].end() || *itr >= y2;
+    }
+    else
+    {
+      if (x1 > x2)
+        swap(x1, x2);
+      if (ec[y1].prod(x1, x2))
+        return false;
+      auto itr = upper_bound(ALL(c[y1]), x1);
+      return itr == c[y1].end() || *itr >= x2;
+    }
+  };
+
   while (q.size())
   {
     auto [x1, y1] = q.front();
     q.pop();
     int x2, y2, x3, y3, x4, y4;
-    x2 = x1;
-    auto itr = upper_bound(ALL(r[x1]), y1);
-    if (itr != r[x1].end())
+    auto itr2 = upper_bound(ALL(r[x1]), y1);
+    if (itr2 != r[x1].end())
     {
-      /*
-      x4,y4 <- x3,y3
-      x1,y1 -> x2,y2
-      のパターン
-      */
-      y2 = *itr;
-      auto itr1 = upper_bound(ALL(c[y1]), x1);
-      auto itr2 = upper_bound(ALL(c[y2]), x2);
-      if (itr2 != c[y2].end())
+      x2 = x1;
+      y2 = *itr2;
+      if (check(x1, y1, x2, y2))
       {
-        if (itr1 == c[y1].end() || *itr2 < *itr1)
+        bool f = true;
+        auto itr3 = upper_bound(ALL(c[y2]), x2);
+        if (itr3 != c[y2].end())
         {
-          x3 = *itr2;
+          x3 = *itr3;
           y3 = y2;
-          x4 = x3;
-          y4 = y1;
-          auto itr4 = upper_bound(ALL(r[x4]), y4);
-          if (*itr4 == y3)
+          if (check(x2, y2, x3, y3))
           {
-            if (!er[x1].prod(y1, y2) &&
-                !ec[y2].prod(x2, x3) &&
-                !er[x4].prod(y4, y3) &&
-                !ec[y1].prod(x1, x4))
+            x4 = x3;
+            y4 = y1;
+            if (!c[y4].count(x4) && check(x3, y3, x4, y4) && check(x4, y4, x1, y1))
             {
               ans.pb(vi{x4, y4, x1, y1, x2, y2, x3, y3});
               er[x1].apply(y1, y2, 1);
               er[x4].apply(y4, y3, 1);
               ec[y1].apply(x1, x4, 1);
               ec[y2].apply(x2, x3, 1);
-              q.push({x4, y4});
               r[x4].insert(y4);
               c[y4].insert(x4);
+              q.push({x4, y4});
+              f = false;
+            }
+          }
+        }
+        if (f)
+        {
+          itr3--;
+          if (itr3 != c[y2].begin())
+          {
+            itr3--;
+            x3 = *itr3;
+            y3 = y2;
+            if (check(x2, y2, x3, y3))
+            {
+              x4 = x3;
+              y4 = y1;
+              if (!c[y4].count(x4) && check(x3, y3, x4, y4) && check(x4, y4, x1, y1))
+              {
+                ans.pb(vi{x4, y4, x1, y1, x2, y2, x3, y3});
+                er[x1].apply(y1, y2, 1);
+                er[x4].apply(y4, y3, 1);
+                ec[y1].apply(x4, x1, 1);
+                ec[y2].apply(x3, x2, 1);
+                r[x4].insert(y4);
+                c[y4].insert(x4);
+                q.push({x4, y4});
+              }
             }
           }
         }
       }
-      /*
-      x1,y1 -> x2,y2
-      x4,y4 <- x3,y3
-      のパターン
-      */
-      itr1 = lower_bound(ALL(c[y1]), x1);
-      itr2 = lower_bound(ALL(c[y2]), x2);
-      if (itr2 != c[y2].begin())
+    }
+    itr2 = upper_bound(ALL(c[y1]), x1);
+    if (itr2 != c[y1].end())
+    {
+      x2 = *itr2;
+      y2 = y1;
+      if (check(x1, y1, x2, y2))
       {
-        itr2--;
-        if (itr1 == c[y1].begin() || *itr2 > *(--itr1))
+        auto itr3 = upper_bound(ALL(r[x2]), y2);
+        if (itr3 != r[x2].end())
         {
-          x3 = *itr2;
-          y3 = y2;
-          x4 = x3;
-          y4 = y1;
-          auto itr4 = upper_bound(ALL(r[x4]), y4);
-          if (*itr4 == y3)
+          x3 = x2;
+          y3 = *itr3;
+          if (check(x2, y2, x3, y3))
           {
-            if (!er[x1].prod(y1, y2) &&
-                !ec[y2].prod(x3, x2) &&
-                !er[x4].prod(y4, y3) &&
-                !ec[y1].prod(x4, x1))
+            x4 = x1;
+            y4 = y3;
+            if (!c[y4].count(x4) && check(x3, y3, x4, y4) && check(x4, y4, x1, y1))
             {
               ans.pb(vi{x4, y4, x1, y1, x2, y2, x3, y3});
-              er[x1].apply(y1, y2, 1);
-              er[x4].apply(y4, y3, 1);
-              ec[y1].apply(x4, x1, 1);
-              ec[y2].apply(x3, x2, 1);
-              q.push({x4, y4});
+              er[x1].apply(y1, y4, 1);
+              er[x2].apply(y2, y3, 1);
+              ec[y1].apply(x1, x2, 1);
+              ec[y4].apply(x4, x3, 1);
               r[x4].insert(y4);
               c[y4].insert(x4);
+              q.push({x4, y4});
+            }
+          }
+        }
+      }
+    }
+    itr2 = lower_bound(ALL(c[y1]), x1);
+    if (itr2 != c[y1].begin())
+    {
+      itr2--;
+      x2 = *itr2;
+      y2 = y1;
+      if (check(x1, y1, x2, y2))
+      {
+        auto itr3 = upper_bound(ALL(r[x2]), y2);
+        if (itr3 != r[x2].end())
+        {
+          x3 = x2;
+          y3 = *itr3;
+          if (check(x2, y2, x3, y3))
+          {
+            x4 = x1;
+            y4 = y3;
+            if (!c[y4].count(x4) && check(x3, y3, x4, y4) && check(x4, y4, x1, y1))
+            {
+              ans.pb(vi{x4, y4, x1, y1, x2, y2, x3, y3});
+              er[x1].apply(y1, y4, 1);
+              er[x2].apply(y2, y3, 1);
+              ec[y1].apply(x2, x1, 1);
+              ec[y4].apply(x3, x4, 1);
+              r[x4].insert(y4);
+              c[y4].insert(x4);
+              q.push({x4, y4});
             }
           }
         }
