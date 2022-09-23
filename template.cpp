@@ -1,6 +1,7 @@
 #include <bits/stdc++.h>
 #include <regex>
 #include <atcoder/all>
+#include <chrono>
 
 using namespace std;
 using namespace atcoder;
@@ -101,6 +102,7 @@ using mint = modint;
 using vm = vector<mint>;
 using vvm = vector<vm>;
 using vvvm = vector<vvm>;
+using time_point = chrono::system_clock::time_point;
 #pragma endregion using
 //*
 const int mod = 998244353;
@@ -792,18 +794,24 @@ int mapping(int f, int x) { return f == INF ? x : f; }
 int composition(int f, int g) { return f == INF ? g : f; }
 int id() { return INF; }
 
+time_point now() { return chrono::system_clock::now(); }
+int duration(const time_point &start) { return chrono::duration_cast<chrono::milliseconds>(now() - start).count(); }
+
 int main()
 {
   fast_io;
   set_mod(mod);
+
+  const auto start = now();
+  const int limit = 4500;
   input(N, M);
   cinvi2(x, y, M);
-  queue<pi> q;
+  deque<pi> q;
   rep(i, M)
   {
     r[x[i]].insert(y[i]);
     c[y[i]].insert(x[i]);
-    q.push({x[i], y[i]});
+    q.push_back({x[i], y[i]});
   }
   vvi ans;
   vector er(N, lazy_segtree<int, op, e, int, mapping, composition, id>(N)), ec(N, lazy_segtree<int, op, e, int, mapping, composition, id>(N));
@@ -833,7 +841,7 @@ int main()
   while (q.size())
   {
     auto [x1, y1] = q.front();
-    q.pop();
+    q.pop_front();
     int x2, y2, x3, y3, x4, y4;
     auto itr2 = upper_bound(ALL(r[x1]), y1);
     if (itr2 != r[x1].end())
@@ -861,7 +869,7 @@ int main()
               ec[y2].apply(x2, x3, 1);
               r[x4].insert(y4);
               c[y4].insert(x4);
-              q.push({x4, y4});
+              q.push_front({x4, y4});
               f = false;
             }
           }
@@ -887,7 +895,7 @@ int main()
                 ec[y2].apply(x3, x2, 1);
                 r[x4].insert(y4);
                 c[y4].insert(x4);
-                q.push({x4, y4});
+                q.push_front({x4, y4});
               }
             }
           }
@@ -919,7 +927,7 @@ int main()
               ec[y4].apply(x4, x3, 1);
               r[x4].insert(y4);
               c[y4].insert(x4);
-              q.push({x4, y4});
+              q.push_front({x4, y4});
             }
           }
         }
@@ -951,12 +959,15 @@ int main()
               ec[y4].apply(x3, x4, 1);
               r[x4].insert(y4);
               c[y4].insert(x4);
-              q.push({x4, y4});
+              q.push_front({x4, y4});
             }
           }
         }
       }
     }
+    q.push_back({x1, y1});
+    if (duration(start) > limit)
+      break;
   }
   cout << ans.size() << endl;
   print(ans);
