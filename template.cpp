@@ -697,6 +697,11 @@ namespace vec
 using namespace vec;
 namespace util
 {
+  template <typename... Args>
+  void input(Args &&...args)
+  {
+    (std::cin >> ... >> args);
+  }
   ostream &operator<<(ostream &os, const modint &x)
   {
     os << x.val();
@@ -784,4 +789,5 @@ int main()
 {
   fast_io;
   set_mod(mod);
+  cin >> N >> M;
 }
