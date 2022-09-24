@@ -202,6 +202,14 @@ struct Tree : Graph
         dfs(r, -1);
         return idx;
     }
+    vi dis(int s) { return Graph::dis(s); }
+    int dis(int u, int v)
+    {
+        assert(0 <= u && u < _n);
+        assert(0 <= v && v < _n);
+        int a = lca(u, v);
+        return _dis[u] + _dis[v] - 2 * _dis[a];
+    }
 
 protected:
     vvi _parent;
