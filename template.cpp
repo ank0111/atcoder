@@ -455,6 +455,33 @@ struct Tree : Graph
     }
     return _parent[a][0];
   }
+  vi preorder(int r)
+  {
+    assert(0 <= r && r < _n);
+    vi idx(_n);
+    function<int(int, int)> dfs = [&](int t, int p)
+    {
+      int i = idx[t];
+      for (int n : (*this)[t])
+      {
+        if (n == p)
+          continue;
+        idx[n] = i + 1;
+        i = dfs(n, t);
+      }
+      return i;
+    };
+    dfs(r, -1);
+    return idx;
+  }
+  vi dis(int s) { return Graph::dis(s); }
+  int dis(int u, int v)
+  {
+    assert(0 <= u && u < _n);
+    assert(0 <= v && v < _n);
+    int a = lca(u, v);
+    return _dis[u] + _dis[v] - 2 * _dis[a];
+  }
 
 protected:
   vvi _parent;
