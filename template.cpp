@@ -474,6 +474,24 @@ struct Tree : Graph
     dfs(r, -1);
     return idx;
   }
+  vi postorder(int r)
+  {
+    assert(0 <= r && r < _n);
+    vi idx(_n);
+    int i = 0;
+    function<int(int, int)> dfs = [&](int t, int p)
+    {
+      for (int n : (*this)[t])
+      {
+        if (n == p)
+          continue;
+        dfs(n, t);
+      }
+      return idx[t] = i++;
+    };
+    dfs(r, -1);
+    return idx;
+  }
   vi dis(int s) { return Graph::dis(s); }
   int dis(int u, int v)
   {
