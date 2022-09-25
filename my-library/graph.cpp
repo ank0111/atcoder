@@ -120,6 +120,20 @@ struct Graph : vector<vector<int>>
     {
         return _c;
     }
+    vi path(int u, int v)
+    {
+        dis(v);
+        vi res;
+        int t = u;
+        while (true)
+        {
+            res.push_back(t);
+            if (t == v)
+                break;
+            t = _prev[t];
+        }
+        return res;
+    }
 
 protected:
     int _n;
