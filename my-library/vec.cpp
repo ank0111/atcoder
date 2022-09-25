@@ -3,6 +3,30 @@ using namespace std;
 
 namespace vec
 {
+    template <typename T = int>
+    vector<T> mkiota(int n, T s = 0)
+    {
+        vector<T> res(n);
+        std::iota(res.begin(), res.end(), s);
+        return res;
+    }
+    vector<int> mkr(vector<int> p)
+    {
+        int n = p.size();
+        vector<int> r(n);
+        for (int i = 0; i < n; i++)
+            r[p[i]] = i;
+        return r;
+    }
+    template <typename T>
+    vector<pair<T, int>> mkvi(vector<T> v)
+    {
+        int n = v.size();
+        vector<pair<T, int>> res(n);
+        for (int i = 0; i < n; i++)
+            res[i] = {v[i], i};
+        return res;
+    }
     template <typename T>
     T vsum(const vector<T> &v)
     {

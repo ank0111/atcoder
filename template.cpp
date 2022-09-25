@@ -722,16 +722,16 @@ namespace math
   void chgcd(T &a, const U &b) { a = gcd(a, b); }
 }
 using namespace math;
-namespace make
+namespace vec
 {
   template <typename T = int>
-  vector<T> iota(int n, T s = 0)
+  vector<T> mkiota(int n, T s = 0)
   {
     vector<T> res(n);
     std::iota(res.begin(), res.end(), s);
     return res;
   }
-  vector<int> index(vector<int> p)
+  vector<int> mkr(vector<int> p)
   {
     int n = p.size();
     vector<int> r(n);
@@ -740,7 +740,7 @@ namespace make
     return r;
   }
   template <typename T>
-  vector<pair<T, int>> v_i(vector<T> v)
+  vector<pair<T, int>> mkvi(vector<T> v)
   {
     int n = v.size();
     vector<pair<T, int>> res(n);
@@ -748,10 +748,6 @@ namespace make
       res[i] = {v[i], i};
     return res;
   }
-}
-using namespace make;
-namespace vec
-{
   template <typename T>
   T vsum(const vector<T> &v)
   {
