@@ -2,6 +2,10 @@
 
 ## [Graph](graph)
 
+## [Tree](tree)
+
+## [CGraph](cgraph)
+
 グラフ関連の操作をまとめています。
 
 ## [Mod](mod)
