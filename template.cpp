@@ -627,6 +627,23 @@ struct CGraph : vector<vector<pair<int, long long>>>
   {
     return _prev;
   }
+  vi path(int u, int v, bool n = false)
+  {
+    if (n)
+      bellfo(v);
+    else
+      dijk(v);
+    vi res;
+    int t = u;
+    while (true)
+    {
+      res.push_back(t);
+      if (t == v)
+        break;
+      t = _prev[t];
+    }
+    return res;
+  }
 
 private:
   int _n;
