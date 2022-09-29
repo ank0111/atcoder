@@ -566,6 +566,15 @@ struct CGraph : vector<vector<pair<int, T>>>
   using vi = vector<int>;
   using vvp = vector<vector<pair<int, T>>>;
   using edge = tuple<int, int, T>;
+  struct Edge
+  {
+    int to, from;
+    T cost;
+    bool operator<(const Edge b)
+    {
+      return cost < b.cost;
+    }
+  };
 
   CGraph(int n = 0, int m = 0, bool d = false) : _n(n), vvp(n) { load(m, d); }
   CGraph(int n, vector<edge> e, bool d = false) : CGraph(n) { load(e, d); }
@@ -602,6 +611,7 @@ struct CGraph : vector<vector<pair<int, T>>>
     assert(0 <= from && from < _n);
     assert(0 <= to && to < _n);
     (*this)[from].push_back({to, cost});
+    _e.push_back({from, to, cost});
   }
   vt dijk(int s, T zero = 0, T unreachable = LLONG_MAX)
   {
@@ -688,47 +698,25 @@ struct CGraph : vector<vector<pair<int, T>>>
     }
     return res;
   }
+  template <typename U>
+  T kruskal(U &uf, T zero = 0)
+  {
+    T res = zero;
+    sort(_e.begin(), _e.end());
+    for (Edge t : _e)
+    {
+      if (uf.same(t.from, t.to))
+        continue;
+      uf.merge(t.from, t.to);
+      res += t.cost;
+    }
+    return res;
+  }
 
 private:
   int _n;
   vi _prev;
-};
-struct Kruskal
-{
-  struct Edge
-  {
-    long long a, b, c;
-    bool operator<(Edge b)
-    {
-      return c < b.c;
-    }
-  };
-  Kruskal(int n, vector<Edge> e) : _uf(n), _e(e) {}
-  long long sum()
-  {
-    long long res = 0;
-    sort(_e.begin(), _e.end());
-    for (Edge t : _e)
-    {
-      if (_uf.same(t.a, t.b))
-        continue;
-      _uf.merge(t.a, t.b);
-      res += t.c;
-    }
-    return res;
-  }
-  dsu uf()
-  {
-    return _uf;
-  }
-  vector<Edge> e()
-  {
-    return _e;
-  }
-
-private:
   vector<Edge> _e;
-  dsu _uf;
 };
 namespace math
 {
