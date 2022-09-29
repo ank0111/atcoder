@@ -291,13 +291,13 @@ protected:
     vvi _parent;
 };
 
-struct CGraph : vector<vector<pair<int, long long>>>
+template <typename T = long long>
+struct CGraph : vector<vector<pair<int, T>>>
 {
-    using ll = long long;
-    using vl = vector<ll>;
+    using vt = vector<T>;
     using vi = vector<int>;
-    using vvp = vector<vector<pair<int, ll>>>;
-    using edge = tuple<int, int, ll>;
+    using vvp = vector<vector<pair<int, T>>>;
+    using edge = tuple<int, int, T>;
 
     CGraph(int n = 0, int m = 0, bool d = false) : _n(n), vvp(n) { load(m, d); }
     CGraph(int n, vector<edge> e, bool d = false) : CGraph(n) { load(e, d); }
@@ -312,7 +312,7 @@ struct CGraph : vector<vector<pair<int, long long>>>
         for (int i = 0; i < m; i++)
         {
             int u, v;
-            ll c;
+            T c;
             cin >> u >> v >> c;
             u--, v--;
             add_edge(u, v, c);
@@ -329,19 +329,19 @@ struct CGraph : vector<vector<pair<int, long long>>>
                 add_edge(v, u, c);
         }
     }
-    void add_edge(int from, int to, ll cost)
+    void add_edge(int from, int to, T cost)
     {
         assert(0 <= from && from < _n);
         assert(0 <= to && to < _n);
         (*this)[from].push_back({to, cost});
     }
-    vl dijk(int s)
+    vt dijk(int s, T zero = 0, T unreachable = LLONG_MAX)
     {
-        vl dis(_n, LLONG_MAX);
         assert(0 <= s && s < _n);
+        vt dis(_n, unreachable);
         _prev.assign(_n, -1);
-        priority_queue<pair<ll, int>, vector<pair<ll, int>>, greater<pair<ll, int>>> q;
-        dis[s] = 0;
+        priority_queue<pair<T, int>, vector<pair<T, int>>, greater<pair<T, int>>> q;
+        dis[s] = zero;
         q.push({0, s});
         while (q.size())
         {
@@ -362,29 +362,30 @@ struct CGraph : vector<vector<pair<int, long long>>>
         }
         return dis;
     }
-    vl bellfo(int s)
+    vt bellfo(int s, T zero = 0, T unreachable = LLONG_MAX, T inf = LLONG_MIN)
     {
-        vl dis(_n, LLONG_MAX);
-        dis[s] = 0;
         assert(0 <= s && s < _n);
+        vt dis(_n, unreachable);
+        _prev.assign(_n, -1);
+        dis[s] = zero;
         for (int i = 0; i < 2 * _n; i++)
         {
             for (int t = 0; t < _n; t++)
             {
-                if (dis[t] == LLONG_MAX)
+                if (dis[t] == unreachable)
                     continue;
                 for (auto [n, c] : (*this)[t])
                 {
-                    if (dis[t] == LLONG_MIN)
+                    if (dis[t] == inf)
                     {
-                        dis[n] = LLONG_MIN;
+                        dis[n] = inf;
                         _prev[n] = t;
                     }
                     else if (dis[n] > dis[t] + c)
                     {
                         if (i >= _n - 1)
                         {
-                            dis[n] = LLONG_MIN;
+                            dis[n] = inf;
                             _prev[n] = t;
                         }
                         else
