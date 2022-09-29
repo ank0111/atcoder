@@ -102,9 +102,6 @@ using vm = vector<mint>;
 using vvm = vector<vm>;
 using vvvm = vector<vvm>;
 #pragma endregion using
-//*
-const int mod = 998244353;
-//*/const int mod = 1e9 + 7;
 
 struct Sieve
 {
@@ -884,6 +881,9 @@ namespace util
 }
 using namespace util;
 
+//*
+const int mod = 998244353;
+//*/const int mod = 1e9 + 7;
 ll M, N, K, Q, H, W;
 string S, T;
 const string yes = "Yes", no = "No";
