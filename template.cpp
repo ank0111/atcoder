@@ -511,6 +511,50 @@ struct Tree : Graph
     int a = lca(u, v);
     return _dis[u] + _dis[v] - 2 * _dis[a];
   }
+  template <typename T>
+  vector<T> rerooting(const function<T(T, T)> f1, const function<T(T, T)> f2, const T &id)
+  {
+    vector<T> dp(_n, id);
+    const function<void(int, int)> dfs1 = [&](int t, int p)
+    {
+      for (int n : (*this)[t])
+      {
+        if (n == p)
+          continue;
+        dfs1(n, t);
+        dp[t] = f1(dp[t], dp[n]);
+      }
+    };
+    const function<void(int, int, T)> dfs2 = [&](int t, int p, const T dp_p)
+    {
+      if (p != -1)
+        dp[t] = f1(dp[t], dp_p);
+      int n = (*this)[t].size();
+      vector<T> l(n, id), r(n, id);
+      for (int i = 0; i < n - 1; i++)
+      {
+        int c = (*this)[t][i];
+        T a = c == p ? dp_p : dp[c];
+        l[i + 1] = f1(l[i], a);
+      }
+      for (int i = n - 2; i >= 0; i--)
+      {
+        int c = (*this)[t][i + 1];
+        T a = c == p ? dp_p : dp[c];
+        r[i] = f1(r[i + 1], a);
+      }
+      for (int i = 0; i < n; i++)
+      {
+        int c = (*this)[t][i];
+        if (c == p)
+          continue;
+        dfs2(c, t, f2(l[i], r[i]));
+      }
+    };
+    dfs1(0, -1);
+    dfs2(0, -1, id);
+    return dp;
+  }
 
 protected:
   vvi _parent;
