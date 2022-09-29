@@ -338,6 +338,7 @@ struct CGraph : vector<vector<pair<int, long long>>>
     vl dijk(int s)
     {
         vl dis(_n, LLONG_MAX);
+        assert(0 <= s && s < _n);
         _prev.assign(_n, -1);
         priority_queue<pair<ll, int>, vector<pair<ll, int>>, greater<pair<ll, int>>> q;
         dis[s] = 0;
@@ -365,6 +366,7 @@ struct CGraph : vector<vector<pair<int, long long>>>
     {
         vl dis(_n, LLONG_MAX);
         dis[s] = 0;
+        assert(0 <= s && s < _n);
         for (int i = 0; i < 2 * _n; i++)
         {
             for (int t = 0; t < _n; t++)
