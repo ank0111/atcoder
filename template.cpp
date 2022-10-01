@@ -219,7 +219,7 @@ struct Mod
     else
       return pow(x * x, n / 2);
   }
-  ll F(int x)
+  ll F(size_t x)
   {
     while (_F.size() <= x)
     {
@@ -227,7 +227,7 @@ struct Mod
     }
     return _F[x];
   }
-  ll invF(int x)
+  ll invF(size_t x)
   {
     while (_invF.size() <= x)
     {
