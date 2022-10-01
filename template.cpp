@@ -147,44 +147,25 @@ struct Sieve
     return res;
   }
 };
-struct Mat : vector<vector<long long>>
+template <typename T = long long>
+struct Mat : vector<vector<T>>
 {
-  using ll = long long;
-  using vl = vector<ll>;
-  using vvl = vector<vl>;
+  using vt = vector<T>;
+  using vvt = vector<vt>;
   Mat() {}
-  Mat(int r) : vvl(r) { _r = r; }
-  Mat(int r, vl v) : vvl(r, v)
-  {
-    _r = r;
-    _c = v.size();
-  }
-  Mat(vvl hoge) : vvl(hoge)
-  {
-    _r = hoge.size();
-    _c = hoge[0].size();
-  }
-  Mat(int r, int c) : vector(r, vl(c))
-  {
-    _r = r, _c = c;
-  }
-
-  Mat operator=(const Mat &b)
-  {
-    vvl::operator=(b);
-    _r = b._r;
-    _c = b._c;
-    return *this;
-  }
+  Mat(size_t r, T id = 1) : vvt(r), _r(r), _id(id) {}
+  Mat(size_t r, vt v, T id = 1) : vvt(r, v), _r(r), _c(v.size()), _id(id) {}
+  Mat(vvt m, T id = 1) : vvt(m), _r(m.size()), _c(m[0].size()), _id(id) {}
+  Mat(size_t r, size_t c, T id = 1) : vvt(r, vt(c)), _r(r), _c(c), _id(id) {}
   Mat operator*(const Mat &b)
   {
     assert(_c == b._r);
-    Mat res(_r, b._c);
-    for (int i = 0; i < _r; i++)
-      for (int j = 0; j < b._c; j++)
-        for (int k = 0; k < _c; k++)
+    Mat res(_r, b._c, _id);
+    for (size_t i = 0; i < _r; i++)
+      for (size_t j = 0; j < b._c; j++)
+        for (size_t k = 0; k < _c; k++)
         {
-          res[i][j] += (*this)[i][k] * b[k][j];
+          res[i][j] = res[i][j] + (*this)[i][k] * b[k][j];
         }
     return res;
   }
@@ -196,9 +177,9 @@ struct Mat : vector<vector<long long>>
   {
     assert(n >= 0);
     assert(_r == _c);
-    Mat res(_r, _c);
-    for (int i = 0; i < _r; i++)
-      res[i][i] = 1;
+    Mat res(_r, _c, _id);
+    for (size_t i = 0; i < _r; i++)
+      res[i][i] = _id;
     Mat x = *this;
     while (n)
     {
@@ -213,7 +194,8 @@ struct Mat : vector<vector<long long>>
   }
 
 private:
-  int _r, _c;
+  size_t _r, _c;
+  T _id;
 };
 struct Mod
 {
