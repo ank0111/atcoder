@@ -275,9 +275,9 @@ struct Graph : vector<vector<int>>
 {
   using vi = vector<int>;
   using vvi = vector<vi>;
-  Graph(int n = 0, int m = 0, bool d = false) : _n(n), vvi(n) { load(m, d); }
+  Graph(int n = 0, int m = 0, bool d = false) : vvi(n), _n(n) { load(m, d); }
   Graph(int n, vector<pair<int, int>> e, bool d = false) : Graph(n) { load(e, d); }
-  Graph(vvi g) : vvi(g) { _n = g.size(); }
+  Graph(vvi g) : vvi(g), _n(g.size()) {}
   void resize(int n)
   {
     _n = n;
