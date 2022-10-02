@@ -320,6 +320,20 @@ struct Graph : vector<vector<int>>
   {
     return _prev;
   }
+  vi path(int u, int v)
+  {
+    dis(v);
+    vi res;
+    int t = u;
+    while (true)
+    {
+      res.push_back(t);
+      if (t == v)
+        break;
+      t = _prev[t];
+    }
+    return res;
+  }
   vi tpsort()
   {
     vi in(_n);
@@ -371,20 +385,6 @@ struct Graph : vector<vector<int>>
   vi color()
   {
     return _c;
-  }
-  vi path(int u, int v)
-  {
-    dis(v);
-    vi res;
-    int t = u;
-    while (true)
-    {
-      res.push_back(t);
-      if (t == v)
-        break;
-      t = _prev[t];
-    }
-    return res;
   }
 
 protected:
