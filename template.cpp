@@ -915,5 +915,5 @@ int main()
 {
   fast_io;
   set_mod(mod);
-  cin >> N >> M;
+  input(N, M);
 }
