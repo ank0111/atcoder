@@ -8,7 +8,7 @@ namespace util
     template <typename... Args>
     void input(Args &&...args)
     {
-        (std::cin >> ... >> args);
+        (cin >> ... >> args);
     }
     ostream &operator<<(ostream &os, const modint &x)
     {
@@ -67,8 +67,8 @@ namespace util
         z = w;
         return (w = (w ^ (w >> 19)) ^ (t ^ (t >> 8)));
     }
-    template <typename T = long long>
-    T nibutan(T ok, T ng, function<bool(T)> valid)
+    template <typename T = long long, typename F>
+    T nibutan(T ok, T ng, F valid)
     {
         while (abs(ok - ng) > 1)
         {
