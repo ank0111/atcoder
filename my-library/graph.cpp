@@ -242,8 +242,8 @@ struct Tree : Graph
         int a = lca(u, v);
         return _dis[u] + _dis[v] - 2 * _dis[a];
     }
-    template <typename T>
-    vector<T> rerooting(const function<T(T, T)> f1, const function<T(T, T)> f2, const T &id)
+    template <typename T, typename F1, typename F2>
+    vector<T> rerooting(const F1 merge, const F2 f, const T &id)
     {
         vector<T> dp(_n, id);
         const function<void(int, int)> dfs1 = [&](int t, int p)
@@ -253,33 +253,33 @@ struct Tree : Graph
                 if (n == p)
                     continue;
                 dfs1(n, t);
-                dp[t] = f1(dp[t], dp[n]);
+                dp[t] = merge(dp[t], f(dp[n]));
             }
         };
         const function<void(int, int, T)> dfs2 = [&](int t, int p, const T dp_p)
         {
             if (p != -1)
-                dp[t] = f1(dp[t], dp_p);
+                dp[t] = merge(dp[t], f(dp_p));
             int n = (*this)[t].size();
             vector<T> l(n, id), r(n, id);
             for (int i = 0; i < n - 1; i++)
             {
                 int c = (*this)[t][i];
                 T a = c == p ? dp_p : dp[c];
-                l[i + 1] = f1(l[i], a);
+                l[i + 1] = merge(l[i], f(a));
             }
             for (int i = n - 2; i >= 0; i--)
             {
                 int c = (*this)[t][i + 1];
                 T a = c == p ? dp_p : dp[c];
-                r[i] = f1(r[i + 1], a);
+                r[i] = merge(r[i + 1], f(a));
             }
             for (int i = 0; i < n; i++)
             {
                 int c = (*this)[t][i];
                 if (c == p)
                     continue;
-                dfs2(c, t, f2(l[i], r[i]));
+                dfs2(c, t, merge(l[i], r[i]));
             }
         };
         dfs1(0, -1);
