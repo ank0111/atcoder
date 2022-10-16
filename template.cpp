@@ -700,6 +700,46 @@ private:
   vi _prev;
   vector<Edge> _e;
 };
+template <typename T = int>
+struct PersistentStack
+{
+  PersistentStack() {}
+  T top() const
+  {
+    assert(_n > 0);
+    return _top->v;
+  }
+  bool empty() const
+  {
+    return _n == 0;
+  }
+  size_t size() const
+  {
+    return _n;
+  }
+  PersistentStack push(const T &v) const
+  {
+    Node *ntop = new Node();
+    ntop->v = v;
+    ntop->p = _top;
+    return PersistentStack(_n + 1, ntop);
+  }
+  PersistentStack pop() const
+  {
+    assert(_n > 0);
+    return PersistentStack(_n - 1, _top->p);
+  }
+
+private:
+  struct Node
+  {
+    T v;
+    Node *p;
+  };
+  PersistentStack(int n, Node *top) : _n(n), _top(top){};
+  size_t _n = 0;
+  Node *_top = nullptr;
+};
 template <typename T = int, size_t SIZE = 10>
 struct PersistentArray
 {
