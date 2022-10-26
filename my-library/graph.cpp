@@ -201,7 +201,7 @@ struct Tree : Graph
     {
         assert(0 <= r && r < _n);
         vi idx(_n);
-        function<int(int, int)> dfs = [&](int t, int p)
+        auto dfs = [&](auto &&f, int t, int p) -> int
         {
             int i = idx[t];
             for (int n : (*this)[t])
@@ -209,11 +209,11 @@ struct Tree : Graph
                 if (n == p)
                     continue;
                 idx[n] = i + 1;
-                i = dfs(n, t);
+                i = f(f, n, t);
             }
             return i;
         };
-        dfs(r, -1);
+        dfs(dfs, r, -1);
         return idx;
     }
     vi postorder(int r)
@@ -221,17 +221,17 @@ struct Tree : Graph
         assert(0 <= r && r < _n);
         vi idx(_n);
         int i = 0;
-        function<int(int, int)> dfs = [&](int t, int p)
+        auto dfs = [&](auto &&f, int t, int p) -> void
         {
             for (int n : (*this)[t])
             {
                 if (n == p)
                     continue;
-                dfs(n, t);
+                f(f, n, t);
             }
-            return idx[t] = i++;
+            idx[t] = i++;
         };
-        dfs(r, -1);
+        dfs(dfs, r, -1);
         return idx;
     }
     vi dis(int s) { return Graph::dis(s); }
@@ -243,20 +243,20 @@ struct Tree : Graph
         return _dis[u] + _dis[v] - 2 * _dis[a];
     }
     template <typename T, typename F1, typename F2>
-    vector<T> rerooting(const F1 merge, const F2 f, const T &id)
+    vector<T> rerooting(const F1 &merge, const F2 &f, const T &id)
     {
         vector<T> dp(_n, id);
-        const function<void(int, int)> dfs1 = [&](int t, int p)
+        const auto dfs1 = [&](auto &&rf, int t, int p) -> void
         {
             for (int n : (*this)[t])
             {
                 if (n == p)
                     continue;
-                dfs1(n, t);
+                rf(rf, n, t);
                 dp[t] = merge(dp[t], f(dp[n]));
             }
         };
-        const function<void(int, int, T)> dfs2 = [&](int t, int p, const T dp_p)
+        const auto dfs2 = [&](auto &&rf, int t, int p, const T dp_p) -> void
         {
             if (p != -1)
                 dp[t] = merge(dp[t], f(dp_p));
@@ -279,11 +279,11 @@ struct Tree : Graph
                 int c = (*this)[t][i];
                 if (c == p)
                     continue;
-                dfs2(c, t, merge(l[i], r[i]));
+                rf(rf, c, t, merge(l[i], r[i]));
             }
         };
-        dfs1(0, -1);
-        dfs2(0, -1, id);
+        dfs1(dfs1, 0, -1);
+        dfs2(dfs2, 0, -1, id);
         return dp;
     }
 
