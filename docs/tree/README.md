@@ -95,3 +95,13 @@ int postorder(int r)
 **制約**
 
 - $0 \leq r < n$
+
+## 全方位木 DP を解く
+
+```cpp
+vector<T> rerooting<T,F1,F2>(const F1 &merge,const F2 &f,const T &id)
+```
+
+$id$ は $f1$ の単位元です。
+
+**制約**
