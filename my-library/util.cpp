@@ -1,21 +1,20 @@
 #include <bits/stdc++.h>
 #include <atcoder/all>
-using namespace std;
 using namespace atcoder;
 
-namespace util
+namespace my_lib
 {
     template <typename... Args>
     void input(Args &&...args)
     {
-        (cin >> ... >> args);
+        (std::cin >> ... >> args);
     }
-    ostream &operator<<(ostream &os, const modint &x)
+    std::ostream &operator<<(std::ostream &os, const modint &x)
     {
         os << x.val();
         return os;
     }
-    istream &operator>>(istream &is, modint &x)
+    std::istream &operator>>(std::istream &is, modint &x)
     {
         int a;
         is >> a;
@@ -23,33 +22,33 @@ namespace util
         return is;
     }
     template <typename T>
-    void print(const vector<T> &a, string s = " ")
+    void print(const std::vector<T> &a, std::string s = " ")
     {
         for (auto x : a)
-            cout << x << s;
+            std::cout << x << s;
     }
     template <typename T>
-    void print(const vector<T> &a, T add, string s = " ")
+    void print(const std::vector<T> &a, T add, std::string s = " ")
     {
         for (auto x : a)
-            cout << x + add << s;
+            std::cout << x + add << s;
     }
     template <typename T>
-    void print(vector<vector<T>> &a, string s = " ")
+    void print(std::vector<std::vector<T>> &a, std::string s = " ")
     {
-        for (vector<T> &v : a)
+        for (std::vector<T> &v : a)
         {
             print(v, s);
-            cout << endl;
+            std::cout << endl;
         }
     }
     template <typename T>
-    void print(vector<vector<T>> &a, T add, string s = " ")
+    void print(std::vector<std::vector<T>> &a, T add, std::string s = " ")
     {
-        for (vector<T> &v : a)
+        for (std::vector<T> &v : a)
         {
             print(v, add, s);
-            cout << endl;
+            std::cout << endl;
         }
     }
     void set_mod(int m) { modint::set_mod(m); }
@@ -68,7 +67,7 @@ namespace util
         return (w = (w ^ (w >> 19)) ^ (t ^ (t >> 8)));
     }
     template <typename T = long long, typename F>
-    T nibutan(T ok, T ng, F valid)
+    T nibutan(T ok, T ng, const F &valid)
     {
         while (abs(ok - ng) > 1)
         {

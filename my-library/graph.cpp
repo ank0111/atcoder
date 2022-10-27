@@ -1,452 +1,454 @@
 #include <bits/stdc++.h>
-using namespace std;
 
-struct Graph : vector<vector<int>>
+namespace my_lib
 {
-    using vi = vector<int>;
-    using vvi = vector<vi>;
-    Graph(int n = 0, int m = 0, bool d = false) : vvi(n), _n(n) { load(m, d); }
-    Graph(int n, vector<pair<int, int>> e, bool d = false) : Graph(n) { load(e, d); }
-    Graph(vvi g) : vvi(g), _n(g.size()) {}
-    void resize(int n)
+    struct Graph : std::vector<std::vector<int>>
     {
-        _n = n;
-        vvi::resize(n);
-    }
-    void load(int m, bool d = false)
-    {
-        for (int i = 0; i < m; i++)
+        using vi = std::vector<int>;
+        using vvi = std::vector<vi>;
+        Graph(int n = 0, int m = 0, bool d = false) : vvi(n), _n(n) { load(m, d); }
+        Graph(int n, std::vector<std::pair<int, int>> e, bool d = false) : Graph(n) { load(e, d); }
+        Graph(vvi g) : vvi(g), _n(g.size()) {}
+        void resize(int n)
         {
-            int u, v;
-            cin >> u >> v;
-            u--, v--;
-            add_edge(u, v);
-            if (!d)
-                add_edge(v, u);
+            _n = n;
+            vvi::resize(n);
         }
-    }
-    void load(vector<pair<int, int>> e, bool d = false)
-    {
-        for (auto [u, v] : e)
+        void load(int m, bool d = false)
         {
-            add_edge(u, v);
-            if (!d)
-                add_edge(v, u);
-        }
-    }
-    void add_edge(int from, int to)
-    {
-        assert(0 <= from && from < _n);
-        assert(0 <= to && to < _n);
-        (*this)[from].push_back(to);
-    }
-    vi dis(int s)
-    {
-        assert(0 <= s && s < _n);
-        queue<int> q;
-        _dis.assign(_n, INT_MAX);
-        _prev.assign(_n, -1);
-        _dis[s] = 0;
-        q.push(s);
-        while (q.size())
-        {
-            int t = q.front();
-            q.pop();
-            for (int n : (*this)[t])
+            for (int i = 0; i < m; i++)
             {
-                if (_dis[n] > _dis[t] + 1)
+                int u, v;
+                std::cin >> u >> v;
+                u--, v--;
+                add_edge(u, v);
+                if (!d)
+                    add_edge(v, u);
+            }
+        }
+        void load(std::vector<std::pair<int, int>> e, bool d = false)
+        {
+            for (auto [u, v] : e)
+            {
+                add_edge(u, v);
+                if (!d)
+                    add_edge(v, u);
+            }
+        }
+        void add_edge(int from, int to)
+        {
+            assert(0 <= from && from < _n);
+            assert(0 <= to && to < _n);
+            (*this)[from].push_back(to);
+        }
+        vi dis(int s)
+        {
+            assert(0 <= s && s < _n);
+            std::queue<int> q;
+            _dis.assign(_n, INT_MAX);
+            _prev.assign(_n, -1);
+            _dis[s] = 0;
+            q.push(s);
+            while (q.size())
+            {
+                int t = q.front();
+                q.pop();
+                for (int n : (*this)[t])
                 {
-                    _dis[n] = _dis[t] + 1;
-                    _prev[n] = t;
-                    q.push(n);
+                    if (_dis[n] > _dis[t] + 1)
+                    {
+                        _dis[n] = _dis[t] + 1;
+                        _prev[n] = t;
+                        q.push(n);
+                    }
                 }
             }
+            return _dis;
         }
-        return _dis;
-    }
-    vi prev()
-    {
-        return _prev;
-    }
-    vi path(int u, int v)
-    {
-        dis(v);
-        vi res;
-        int t = u;
-        while (true)
+        vi prev()
         {
-            res.push_back(t);
-            if (t == v)
-                break;
-            t = _prev[t];
+            return _prev;
         }
-        return res;
-    }
-    vi tpsort()
-    {
-        vi in(_n);
-        for (int i = 0; i < _n; i++)
-            for (int j : (*this)[i])
-                in[j]++;
-        queue<int> q;
-        for (int i = 0; i < _n; i++)
-            if (!in[i])
-                q.push(i);
-        vi res;
-        while (q.size())
+        vi path(int u, int v)
         {
-            int t = q.front();
-            q.pop();
-            for (int n : (*this)[t])
+            dis(v);
+            vi res;
+            int t = u;
+            while (true)
             {
-                in[n]--;
-                if (!in[n])
-                    q.push(n);
+                res.push_back(t);
+                if (t == v)
+                    break;
+                t = _prev[t];
             }
-            res.push_back(t);
+            return res;
         }
-        return res;
-    }
-    bool isBG()
-    {
-        _c.assign(_n, -1);
-        queue<int> q;
-        _c[0] = 0;
-        q.push(0);
-        while (q.size())
+        vi tpsort()
         {
-            int t = q.front();
-            q.pop();
-            for (int n : (*this)[t])
-            {
-                if (_c[n] == _c[t])
-                    return false;
-                if (_c[n] == -1)
-                {
-                    _c[n] = !_c[t];
-                    q.push(n);
-                }
-            }
-        }
-        return true;
-    }
-    vi color()
-    {
-        return _c;
-    }
-
-protected:
-    int _n;
-    vi _dis, _prev, _c;
-};
-
-struct Tree : Graph
-{
-    Tree(int n = 0) : Graph(n, n - 1) {}
-    Tree(vvi t) : Graph(t) {}
-    tuple<int, int, int> dia()
-    {
-        dis(0);
-        int s = max_element(_dis.begin(), _dis.end()) - _dis.begin();
-        dis(s);
-        int t = max_element(_dis.begin(), _dis.end()) - _dis.begin();
-        return {_dis[t], s, t};
-    }
-    vvi doubling(int r)
-    {
-        assert(0 <= r && r < _n);
-        _parent.assign(_n, vi(30, -1));
-        dis(r);
-        for (int i = 0; i < _n; i++)
-            _parent[i][0] = _prev[i];
-        for (int j = 0; j < 30; j++)
+            vi in(_n);
             for (int i = 0; i < _n; i++)
+                for (int j : (*this)[i])
+                    in[j]++;
+            std::queue<int> q;
+            for (int i = 0; i < _n; i++)
+                if (!in[i])
+                    q.push(i);
+            vi res;
+            while (q.size())
             {
-                int tp = _parent[i][j];
-                if (tp != -1)
-                    _parent[i][j + 1] = _parent[tp][j];
+                int t = q.front();
+                q.pop();
+                for (int n : (*this)[t])
+                {
+                    in[n]--;
+                    if (!in[n])
+                        q.push(n);
+                }
+                res.push_back(t);
             }
-        return _parent;
-    }
-    int lca(int a, int b)
-    {
-        assert(0 <= a && a < _n);
-        assert(0 <= b && b < _n);
-        if (_dis[a] > _dis[b])
-            std::swap(a, b);
-        for (int i = 0; i < 30; i++)
-        {
-            if ((_dis[b] - _dis[a]) >> i & 1)
-                b = _parent[b][i];
+            return res;
         }
-        if (a == b)
-            return a;
-        while (_parent[a][0] != _parent[b][0])
+        bool isBG()
         {
-            int l = 0, r = 30;
-            while (r - l > 1)
+            _c.assign(_n, -1);
+            std::queue<int> q;
+            _c[0] = 0;
+            q.push(0);
+            while (q.size())
             {
-                int m = (l + r) / 2;
-                if (_parent[a][m] == _parent[b][m])
-                    r = m;
-                else
-                    l = m;
+                int t = q.front();
+                q.pop();
+                for (int n : (*this)[t])
+                {
+                    if (_c[n] == _c[t])
+                        return false;
+                    if (_c[n] == -1)
+                    {
+                        _c[n] = !_c[t];
+                        q.push(n);
+                    }
+                }
             }
-            a = _parent[a][l];
-            b = _parent[b][l];
+            return true;
         }
-        return _parent[a][0];
-    }
-    vi preorder(int r)
-    {
-        assert(0 <= r && r < _n);
-        vi idx(_n);
-        auto dfs = [&](auto &&f, int t, int p) -> int
+        vi color()
         {
-            int i = idx[t];
-            for (int n : (*this)[t])
-            {
-                if (n == p)
-                    continue;
-                idx[n] = i + 1;
-                i = f(f, n, t);
-            }
-            return i;
-        };
-        dfs(dfs, r, -1);
-        return idx;
-    }
-    vi postorder(int r)
-    {
-        assert(0 <= r && r < _n);
-        vi idx(_n);
-        int i = 0;
-        auto dfs = [&](auto &&f, int t, int p) -> void
-        {
-            for (int n : (*this)[t])
-            {
-                if (n == p)
-                    continue;
-                f(f, n, t);
-            }
-            idx[t] = i++;
-        };
-        dfs(dfs, r, -1);
-        return idx;
-    }
-    vi dis(int s) { return Graph::dis(s); }
-    int dis(int u, int v)
-    {
-        assert(0 <= u && u < _n);
-        assert(0 <= v && v < _n);
-        int a = lca(u, v);
-        return _dis[u] + _dis[v] - 2 * _dis[a];
-    }
-    template <typename T, typename F1, typename F2>
-    vector<T> rerooting(const F1 &merge, const F2 &f, const T &id)
-    {
-        vector<T> dp(_n, id);
-        const auto dfs1 = [&](auto &&rf, int t, int p) -> void
-        {
-            for (int n : (*this)[t])
-            {
-                if (n == p)
-                    continue;
-                rf(rf, n, t);
-                dp[t] = merge(dp[t], f(dp[n]));
-            }
-        };
-        const auto dfs2 = [&](auto &&rf, int t, int p, const T dp_p) -> void
-        {
-            if (p != -1)
-                dp[t] = merge(dp[t], f(dp_p));
-            int n = (*this)[t].size();
-            vector<T> l(n, id), r(n, id);
-            for (int i = 0; i < n - 1; i++)
-            {
-                int c = (*this)[t][i];
-                T a = c == p ? dp_p : dp[c];
-                l[i + 1] = merge(l[i], f(a));
-            }
-            for (int i = n - 2; i >= 0; i--)
-            {
-                int c = (*this)[t][i + 1];
-                T a = c == p ? dp_p : dp[c];
-                r[i] = merge(r[i + 1], f(a));
-            }
-            for (int i = 0; i < n; i++)
-            {
-                int c = (*this)[t][i];
-                if (c == p)
-                    continue;
-                rf(rf, c, t, merge(l[i], r[i]));
-            }
-        };
-        dfs1(dfs1, 0, -1);
-        dfs2(dfs2, 0, -1, id);
-        return dp;
-    }
+            return _c;
+        }
 
-protected:
-    vvi _parent;
-};
-
-template <typename T = long long>
-struct CGraph : vector<vector<pair<int, T>>>
-{
-    using vt = vector<T>;
-    using vi = vector<int>;
-    using vvp = vector<vector<pair<int, T>>>;
-    using edge = tuple<int, int, T>;
-    struct Edge
-    {
-        int to, from;
-        T cost;
-        bool operator<(const Edge b)
-        {
-            return cost < b.cost;
-        }
+    protected:
+        int _n;
+        vi _dis, _prev, _c;
     };
 
-    CGraph(int n = 0, int m = 0, bool d = false) : _n(n), vvp(n) { load(m, d); }
-    CGraph(int n, vector<edge> e, bool d = false) : CGraph(n) { load(e, d); }
-    CGraph(vvp g) : vvp(g) { _n = g.size(); }
-    void resize(int n)
+    struct Tree : Graph
     {
-        _n = n;
-        vvp::resize(n);
-    }
-    void load(int m, bool d = false)
-    {
-        for (int i = 0; i < m; i++)
+        Tree(int n = 0) : Graph(n, n - 1) {}
+        Tree(vvi t) : Graph(t) {}
+        std::tuple<int, int, int> dia()
         {
-            int u, v;
-            T c;
-            cin >> u >> v >> c;
-            u--, v--;
-            add_edge(u, v, c);
-            if (!d)
-                add_edge(v, u, c);
+            dis(0);
+            int s = max_element(_dis.begin(), _dis.end()) - _dis.begin();
+            dis(s);
+            int t = max_element(_dis.begin(), _dis.end()) - _dis.begin();
+            return {_dis[t], s, t};
         }
-    }
-    void load(vector<edge> e, bool d = false)
-    {
-        for (auto [u, v, c] : e)
+        vvi doubling(int r)
         {
-            add_edge(u, v, c);
-            if (!d)
-                add_edge(v, u, c);
-        }
-    }
-    void add_edge(int from, int to, T cost)
-    {
-        assert(0 <= from && from < _n);
-        assert(0 <= to && to < _n);
-        (*this)[from].push_back({to, cost});
-        _e.push_back({from, to, cost});
-    }
-    vt dijk(int s, T zero = 0, T unreachable = LLONG_MAX)
-    {
-        assert(0 <= s && s < _n);
-        vt dis(_n, unreachable);
-        _prev.assign(_n, -1);
-        priority_queue<pair<T, int>, vector<pair<T, int>>, greater<pair<T, int>>> q;
-        dis[s] = zero;
-        q.push({0, s});
-        while (q.size())
-        {
-            auto [tc, t] = q.top();
-            q.pop();
-            if (tc != dis[t])
-                continue;
-            for (auto [n, c] : (*this)[t])
-            {
-                assert(c >= 0);
-                if (dis[n] > tc + c)
+            assert(0 <= r && r < _n);
+            _parent.assign(_n, vi(30, -1));
+            dis(r);
+            for (int i = 0; i < _n; i++)
+                _parent[i][0] = _prev[i];
+            for (int j = 0; j < 30; j++)
+                for (int i = 0; i < _n; i++)
                 {
-                    dis[n] = tc + c;
-                    _prev[n] = t;
-                    q.push({dis[n], n});
+                    int tp = _parent[i][j];
+                    if (tp != -1)
+                        _parent[i][j + 1] = _parent[tp][j];
                 }
+            return _parent;
+        }
+        int lca(int a, int b)
+        {
+            assert(0 <= a && a < _n);
+            assert(0 <= b && b < _n);
+            if (_dis[a] > _dis[b])
+                std::swap(a, b);
+            for (int i = 0; i < 30; i++)
+            {
+                if ((_dis[b] - _dis[a]) >> i & 1)
+                    b = _parent[b][i];
+            }
+            if (a == b)
+                return a;
+            while (_parent[a][0] != _parent[b][0])
+            {
+                int l = 0, r = 30;
+                while (r - l > 1)
+                {
+                    int m = (l + r) / 2;
+                    if (_parent[a][m] == _parent[b][m])
+                        r = m;
+                    else
+                        l = m;
+                }
+                a = _parent[a][l];
+                b = _parent[b][l];
+            }
+            return _parent[a][0];
+        }
+        vi preorder(int r)
+        {
+            assert(0 <= r && r < _n);
+            vi idx(_n);
+            auto dfs = [&](auto &&f, int t, int p) -> int
+            {
+                int i = idx[t];
+                for (int n : (*this)[t])
+                {
+                    if (n == p)
+                        continue;
+                    idx[n] = i + 1;
+                    i = f(f, n, t);
+                }
+                return i;
+            };
+            dfs(dfs, r, -1);
+            return idx;
+        }
+        vi postorder(int r)
+        {
+            assert(0 <= r && r < _n);
+            vi idx(_n);
+            int i = 0;
+            auto dfs = [&](auto &&f, int t, int p) -> void
+            {
+                for (int n : (*this)[t])
+                {
+                    if (n == p)
+                        continue;
+                    f(f, n, t);
+                }
+                idx[t] = i++;
+            };
+            dfs(dfs, r, -1);
+            return idx;
+        }
+        vi dis(int s) { return Graph::dis(s); }
+        int dis(int u, int v)
+        {
+            assert(0 <= u && u < _n);
+            assert(0 <= v && v < _n);
+            int a = lca(u, v);
+            return _dis[u] + _dis[v] - 2 * _dis[a];
+        }
+        template <typename T, typename F1, typename F2>
+        std::vector<T> rerooting(const F1 &merge, const F2 &f, const T &id)
+        {
+            std::vector<T> dp(_n, id);
+            const auto dfs1 = [&](auto &&rf, int t, int p) -> void
+            {
+                for (int n : (*this)[t])
+                {
+                    if (n == p)
+                        continue;
+                    rf(rf, n, t);
+                    dp[t] = merge(dp[t], f(dp[n]));
+                }
+            };
+            const auto dfs2 = [&](auto &&rf, int t, int p, const T dp_p) -> void
+            {
+                if (p != -1)
+                    dp[t] = merge(dp[t], f(dp_p));
+                int n = (*this)[t].size();
+                std::vector<T> l(n, id), r(n, id);
+                for (int i = 0; i < n - 1; i++)
+                {
+                    int c = (*this)[t][i];
+                    T a = c == p ? dp_p : dp[c];
+                    l[i + 1] = merge(l[i], f(a));
+                }
+                for (int i = n - 2; i >= 0; i--)
+                {
+                    int c = (*this)[t][i + 1];
+                    T a = c == p ? dp_p : dp[c];
+                    r[i] = merge(r[i + 1], f(a));
+                }
+                for (int i = 0; i < n; i++)
+                {
+                    int c = (*this)[t][i];
+                    if (c == p)
+                        continue;
+                    rf(rf, c, t, merge(l[i], r[i]));
+                }
+            };
+            dfs1(dfs1, 0, -1);
+            dfs2(dfs2, 0, -1, id);
+            return dp;
+        }
+
+    protected:
+        vvi _parent;
+    };
+
+    template <typename T = long long>
+    struct CGraph : std::vector<std::vector<std::pair<int, T>>>
+    {
+        using vt = std::vector<T>;
+        using vi = std::vector<int>;
+        using vvp = std::vector<std::vector<std::pair<int, T>>>;
+        using edge = std::tuple<int, int, T>;
+        struct Edge
+        {
+            int to, from;
+            T cost;
+            bool operator<(const Edge b)
+            {
+                return cost < b.cost;
+            }
+        };
+
+        CGraph(int n = 0, int m = 0, bool d = false) : _n(n), vvp(n) { load(m, d); }
+        CGraph(int n, std::vector<edge> e, bool d = false) : CGraph(n) { load(e, d); }
+        CGraph(vvp g) : vvp(g) { _n = g.size(); }
+        void resize(int n)
+        {
+            _n = n;
+            vvp::resize(n);
+        }
+        void load(int m, bool d = false)
+        {
+            for (int i = 0; i < m; i++)
+            {
+                int u, v;
+                T c;
+                std::cin >> u >> v >> c;
+                u--, v--;
+                add_edge(u, v, c);
+                if (!d)
+                    add_edge(v, u, c);
             }
         }
-        return dis;
-    }
-    vt bellfo(int s, T zero = 0, T unreachable = LLONG_MAX, T inf = LLONG_MIN)
-    {
-        assert(0 <= s && s < _n);
-        vt dis(_n, unreachable);
-        _prev.assign(_n, -1);
-        dis[s] = zero;
-        for (int i = 0; i < 2 * _n; i++)
+        void load(std::vector<edge> e, bool d = false)
         {
-            for (int t = 0; t < _n; t++)
+            for (auto [u, v, c] : e)
             {
-                if (dis[t] == unreachable)
+                add_edge(u, v, c);
+                if (!d)
+                    add_edge(v, u, c);
+            }
+        }
+        void add_edge(int from, int to, T cost)
+        {
+            assert(0 <= from && from < _n);
+            assert(0 <= to && to < _n);
+            (*this)[from].push_back({to, cost});
+            _e.push_back({from, to, cost});
+        }
+        vt dijk(int s, T zero = 0, T unreachable = LLONG_MAX)
+        {
+            assert(0 <= s && s < _n);
+            vt dis(_n, unreachable);
+            _prev.assign(_n, -1);
+            std::priority_queue<std::pair<T, int>, std::vector<std::pair<T, int>>, std::greater<std::pair<T, int>>> q;
+            dis[s] = zero;
+            q.push({0, s});
+            while (q.size())
+            {
+                auto [tc, t] = q.top();
+                q.pop();
+                if (tc != dis[t])
                     continue;
                 for (auto [n, c] : (*this)[t])
                 {
-                    if (dis[t] == inf)
+                    assert(c >= 0);
+                    if (dis[n] > tc + c)
                     {
-                        dis[n] = inf;
+                        dis[n] = tc + c;
                         _prev[n] = t;
+                        q.push({dis[n], n});
                     }
-                    else if (dis[n] > dis[t] + c)
+                }
+            }
+            return dis;
+        }
+        vt bellfo(int s, T zero = 0, T unreachable = LLONG_MAX, T inf = LLONG_MIN)
+        {
+            assert(0 <= s && s < _n);
+            vt dis(_n, unreachable);
+            _prev.assign(_n, -1);
+            dis[s] = zero;
+            for (int i = 0; i < 2 * _n; i++)
+            {
+                for (int t = 0; t < _n; t++)
+                {
+                    if (dis[t] == unreachable)
+                        continue;
+                    for (auto [n, c] : (*this)[t])
                     {
-                        if (i >= _n - 1)
+                        if (dis[t] == inf)
                         {
                             dis[n] = inf;
                             _prev[n] = t;
                         }
-                        else
+                        else if (dis[n] > dis[t] + c)
                         {
-                            dis[n] = dis[t] + c;
-                            _prev[n] = t;
+                            if (i >= _n - 1)
+                            {
+                                dis[n] = inf;
+                                _prev[n] = t;
+                            }
+                            else
+                            {
+                                dis[n] = dis[t] + c;
+                                _prev[n] = t;
+                            }
                         }
                     }
                 }
             }
+            return dis;
         }
-        return dis;
-    }
-    vi prev()
-    {
-        return _prev;
-    }
-    vi path(int u, int v, bool n = false)
-    {
-        if (n)
-            bellfo(v);
-        else
-            dijk(v);
-        vi res;
-        int t = u;
-        while (true)
+        vi prev()
         {
-            res.push_back(t);
-            if (t == v)
-                break;
-            t = _prev[t];
+            return _prev;
         }
-        return res;
-    }
-    template <typename U>
-    T kruskal(U &uf, T zero = 0)
-    {
-        T res = zero;
-        sort(_e.begin(), _e.end());
-        for (Edge t : _e)
+        vi path(int u, int v, bool n = false)
         {
-            if (uf.same(t.from, t.to))
-                continue;
-            uf.merge(t.from, t.to);
-            res += t.cost;
+            if (n)
+                bellfo(v);
+            else
+                dijk(v);
+            vi res;
+            int t = u;
+            while (true)
+            {
+                res.push_back(t);
+                if (t == v)
+                    break;
+                t = _prev[t];
+            }
+            return res;
         }
-        return res;
-    }
+        template <typename U>
+        T kruskal(U &uf, T zero = 0)
+        {
+            T res = zero;
+            sort(_e.begin(), _e.end());
+            for (Edge t : _e)
+            {
+                if (uf.same(t.from, t.to))
+                    continue;
+                uf.merge(t.from, t.to);
+                res += t.cost;
+            }
+            return res;
+        }
 
-private:
-    int _n;
-    vi _prev;
-    vector<Edge> _e;
-};
+    private:
+        int _n;
+        vi _prev;
+        std::vector<Edge> _e;
+    };
+}

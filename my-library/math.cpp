@@ -1,7 +1,6 @@
 #include <bits/stdc++.h>
-using namespace std;
 
-namespace math
+namespace my_lib
 {
     using ll = long long;
     ll sqsum(ll a, ll b) { return a * a + b * b; }
@@ -51,5 +50,5 @@ namespace math
         return false;
     }
     template <typename T, typename U>
-    void chgcd(T &a, const U &b) { a = gcd(a, b); }
+    void chgcd(T &a, const U &b) { a = std::gcd(a, b); }
 }
