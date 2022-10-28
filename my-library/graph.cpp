@@ -108,37 +108,43 @@ namespace my_lib
             }
             return res;
         }
-        bool isBG()
+        bool isBG(vi *cp = nullptr)
         {
-            _c.assign(_n, -1);
-            std::queue<int> q;
-            _c[0] = 0;
-            q.push(0);
-            while (q.size())
+            vi c(_n, -1);
+            for (int i = 0; i < _n; i++)
             {
-                int t = q.front();
-                q.pop();
-                for (int n : (*this)[t])
+                if (c[i] == -1)
                 {
-                    if (_c[n] == _c[t])
-                        return false;
-                    if (_c[n] == -1)
+                    std::queue<int> q;
+                    c[i] = 0;
+                    q.push(i);
+                    while (q.size())
                     {
-                        _c[n] = !_c[t];
-                        q.push(n);
+                        int t = q.front();
+                        q.pop();
+                        for (int n : (*this)[t])
+                        {
+                            if (c[n] == c[t])
+                                return false;
+                            if (c[n] == -1)
+                            {
+                                c[n] = !c[t];
+                                q.push(n);
+                            }
+                        }
                     }
                 }
             }
+            if (cp != nullptr)
+            {
+                *cp = c;
+            }
             return true;
-        }
-        vi color()
-        {
-            return _c;
         }
 
     protected:
         int _n;
-        vi _dis, _prev, _c;
+        vi _dis, _prev;
     };
 
     struct Tree : Graph
