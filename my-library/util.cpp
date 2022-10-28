@@ -1,6 +1,5 @@
 #include <bits/stdc++.h>
 #include <atcoder/all>
-using namespace atcoder;
 
 namespace my_lib
 {
@@ -9,12 +8,12 @@ namespace my_lib
     {
         (std::cin >> ... >> args);
     }
-    std::ostream &operator<<(std::ostream &os, const modint &x)
+    std::ostream &operator<<(std::ostream &os, const atcoder::modint &x)
     {
         os << x.val();
         return os;
     }
-    std::istream &operator>>(std::istream &is, modint &x)
+    std::istream &operator>>(std::istream &is, atcoder::modint &x)
     {
         int a;
         is >> a;
@@ -39,7 +38,7 @@ namespace my_lib
         for (std::vector<T> &v : a)
         {
             print(v, s);
-            std::cout << endl;
+            std::cout << "\n";
         }
     }
     template <typename T>
@@ -48,10 +47,10 @@ namespace my_lib
         for (std::vector<T> &v : a)
         {
             print(v, add, s);
-            std::cout << endl;
+            std::cout << "\n";
         }
     }
-    void set_mod(int m) { modint::set_mod(m); }
+    void set_mod(int m) { atcoder::modint::set_mod(m); }
     template <typename T>
     int biti(T bit, int i)
     {
