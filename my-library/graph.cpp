@@ -420,12 +420,12 @@ namespace my_lib
         {
             return _prev;
         }
-        vi path(int u, int v, bool n = false)
+        vi path(int u, int v, bool n = false, T zero = 0, T unreachable = LLONG_MAX, T inf = LLONG_MIN)
         {
             if (n)
-                bellfo(v);
+                bellfo(v, zero, unreachable, inf);
             else
-                dijk(v);
+                dijk(v, zero, unreachable);
             vi res;
             int t = u;
             while (true)
