@@ -5,6 +5,7 @@ namespace my_lib
     template <typename T = long long>
     struct Mat : std::vector<std::vector<T>>
     {
+        using ll = long long;
         using vt = std::vector<T>;
         using vvt = std::vector<vt>;
         Mat() {}
