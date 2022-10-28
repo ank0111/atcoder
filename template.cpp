@@ -2,8 +2,923 @@
 #include <regex>
 #include <atcoder/all>
 
+namespace my_lib
+{
+  using ll = long long;
+  struct Graph : std::vector<std::vector<int>>
+  {
+    using vi = std::vector<int>;
+    using vvi = std::vector<vi>;
+    Graph(int n = 0, int m = 0, bool d = false) : vvi(n), _n(n) { load(m, d); }
+    Graph(int n, std::vector<std::pair<int, int>> e, bool d = false) : Graph(n) { load(e, d); }
+    Graph(vvi g) : vvi(g), _n(g.size()) {}
+    void resize(int n)
+    {
+      _n = n;
+      vvi::resize(n);
+    }
+    void load(int m, bool d = false)
+    {
+      for (int i = 0; i < m; i++)
+      {
+        int u, v;
+        std::cin >> u >> v;
+        u--, v--;
+        add_edge(u, v);
+        if (!d)
+          add_edge(v, u);
+      }
+    }
+    void load(std::vector<std::pair<int, int>> e, bool d = false)
+    {
+      for (auto [u, v] : e)
+      {
+        add_edge(u, v);
+        if (!d)
+          add_edge(v, u);
+      }
+    }
+    void add_edge(int from, int to)
+    {
+      assert(0 <= from && from < _n);
+      assert(0 <= to && to < _n);
+      (*this)[from].push_back(to);
+    }
+    vi dis(int s)
+    {
+      assert(0 <= s && s < _n);
+      std::queue<int> q;
+      _dis.assign(_n, INT_MAX);
+      _prev.assign(_n, -1);
+      _dis[s] = 0;
+      q.push(s);
+      while (q.size())
+      {
+        int t = q.front();
+        q.pop();
+        for (int n : (*this)[t])
+        {
+          if (_dis[n] > _dis[t] + 1)
+          {
+            _dis[n] = _dis[t] + 1;
+            _prev[n] = t;
+            q.push(n);
+          }
+        }
+      }
+      return _dis;
+    }
+    vi prev()
+    {
+      return _prev;
+    }
+    vi path(int u, int v)
+    {
+      dis(v);
+      vi res;
+      int t = u;
+      while (true)
+      {
+        res.push_back(t);
+        if (t == v)
+          break;
+        t = _prev[t];
+      }
+      return res;
+    }
+    vi tpsort()
+    {
+      vi in(_n);
+      for (int i = 0; i < _n; i++)
+        for (int j : (*this)[i])
+          in[j]++;
+      std::queue<int> q;
+      for (int i = 0; i < _n; i++)
+        if (!in[i])
+          q.push(i);
+      vi res;
+      while (q.size())
+      {
+        int t = q.front();
+        q.pop();
+        for (int n : (*this)[t])
+        {
+          in[n]--;
+          if (!in[n])
+            q.push(n);
+        }
+        res.push_back(t);
+      }
+      return res;
+    }
+    bool isBG(vi *cp = nullptr)
+    {
+      vi c(_n, -1);
+      for (int i = 0; i < _n; i++)
+      {
+        if (c[i] == -1)
+        {
+          std::queue<int> q;
+          c[i] = 0;
+          q.push(i);
+          while (q.size())
+          {
+            int t = q.front();
+            q.pop();
+            for (int n : (*this)[t])
+            {
+              if (c[n] == c[t])
+                return false;
+              if (c[n] == -1)
+              {
+                c[n] = !c[t];
+                q.push(n);
+              }
+            }
+          }
+        }
+      }
+      if (cp != nullptr)
+      {
+        *cp = c;
+      }
+      return true;
+    }
+
+  protected:
+    int _n;
+    vi _dis, _prev;
+  };
+  struct Tree : Graph
+  {
+    Tree(int n = 0) : Graph(n, n - 1) {}
+    Tree(vvi t) : Graph(t) {}
+    std::tuple<int, int, int> dia()
+    {
+      dis(0);
+      int s = max_element(_dis.begin(), _dis.end()) - _dis.begin();
+      dis(s);
+      int t = max_element(_dis.begin(), _dis.end()) - _dis.begin();
+      return {_dis[t], s, t};
+    }
+    vvi doubling(int r)
+    {
+      assert(0 <= r && r < _n);
+      _parent.assign(_n, vi(30, -1));
+      dis(r);
+      for (int i = 0; i < _n; i++)
+        _parent[i][0] = _prev[i];
+      for (int j = 0; j < 30; j++)
+        for (int i = 0; i < _n; i++)
+        {
+          int tp = _parent[i][j];
+          if (tp != -1)
+            _parent[i][j + 1] = _parent[tp][j];
+        }
+      return _parent;
+    }
+    int lca(int a, int b)
+    {
+      assert(0 <= a && a < _n);
+      assert(0 <= b && b < _n);
+      if (_dis[a] > _dis[b])
+        std::swap(a, b);
+      for (int i = 0; i < 30; i++)
+      {
+        if ((_dis[b] - _dis[a]) >> i & 1)
+          b = _parent[b][i];
+      }
+      if (a == b)
+        return a;
+      while (_parent[a][0] != _parent[b][0])
+      {
+        int l = 0, r = 30;
+        while (r - l > 1)
+        {
+          int m = (l + r) / 2;
+          if (_parent[a][m] == _parent[b][m])
+            r = m;
+          else
+            l = m;
+        }
+        a = _parent[a][l];
+        b = _parent[b][l];
+      }
+      return _parent[a][0];
+    }
+    vi preorder(int r)
+    {
+      assert(0 <= r && r < _n);
+      vi idx(_n);
+      auto dfs = [&](auto &&f, int t, int p) -> int
+      {
+        int i = idx[t];
+        for (int n : (*this)[t])
+        {
+          if (n == p)
+            continue;
+          idx[n] = i + 1;
+          i = f(f, n, t);
+        }
+        return i;
+      };
+      dfs(dfs, r, -1);
+      return idx;
+    }
+    vi postorder(int r)
+    {
+      assert(0 <= r && r < _n);
+      vi idx(_n);
+      int i = 0;
+      auto dfs = [&](auto &&f, int t, int p) -> void
+      {
+        for (int n : (*this)[t])
+        {
+          if (n == p)
+            continue;
+          f(f, n, t);
+        }
+        idx[t] = i++;
+      };
+      dfs(dfs, r, -1);
+      return idx;
+    }
+    vi dis(int s) { return Graph::dis(s); }
+    int dis(int u, int v)
+    {
+      assert(0 <= u && u < _n);
+      assert(0 <= v && v < _n);
+      int a = lca(u, v);
+      return _dis[u] + _dis[v] - 2 * _dis[a];
+    }
+    template <typename T, typename F1, typename F2>
+    std::vector<T> rerooting(const F1 &merge, const F2 &f, const T &id)
+    {
+      std::vector<T> dp(_n, id);
+      const auto dfs1 = [&](auto &&rf, int t, int p) -> void
+      {
+        for (int n : (*this)[t])
+        {
+          if (n == p)
+            continue;
+          rf(rf, n, t);
+          dp[t] = merge(dp[t], f(dp[n]));
+        }
+      };
+      const auto dfs2 = [&](auto &&rf, int t, int p, const T dp_p) -> void
+      {
+        if (p != -1)
+          dp[t] = merge(dp[t], f(dp_p));
+        int n = (*this)[t].size();
+        std::vector<T> l(n, id), r(n, id);
+        for (int i = 0; i < n - 1; i++)
+        {
+          int c = (*this)[t][i];
+          T a = c == p ? dp_p : dp[c];
+          l[i + 1] = merge(l[i], f(a));
+        }
+        for (int i = n - 2; i >= 0; i--)
+        {
+          int c = (*this)[t][i + 1];
+          T a = c == p ? dp_p : dp[c];
+          r[i] = merge(r[i + 1], f(a));
+        }
+        for (int i = 0; i < n; i++)
+        {
+          int c = (*this)[t][i];
+          if (c == p)
+            continue;
+          rf(rf, c, t, merge(l[i], r[i]));
+        }
+      };
+      dfs1(dfs1, 0, -1);
+      dfs2(dfs2, 0, -1, id);
+      return dp;
+    }
+
+  protected:
+    vvi _parent;
+  };
+  template <typename T = long long>
+  struct CGraph : std::vector<std::vector<std::pair<int, T>>>
+  {
+    using vt = std::vector<T>;
+    using vi = std::vector<int>;
+    using vvp = std::vector<std::vector<std::pair<int, T>>>;
+    using edge = std::tuple<int, int, T>;
+    struct Edge
+    {
+      int to, from;
+      T cost;
+      bool operator<(const Edge b)
+      {
+        return cost < b.cost;
+      }
+    };
+
+    CGraph(int n = 0, int m = 0, bool d = false) : _n(n), vvp(n) { load(m, d); }
+    CGraph(int n, std::vector<edge> e, bool d = false) : CGraph(n) { load(e, d); }
+    CGraph(vvp g) : vvp(g) { _n = g.size(); }
+    void resize(int n)
+    {
+      _n = n;
+      vvp::resize(n);
+    }
+    void load(int m, bool d = false)
+    {
+      for (int i = 0; i < m; i++)
+      {
+        int u, v;
+        T c;
+        std::cin >> u >> v >> c;
+        u--, v--;
+        add_edge(u, v, c);
+        if (!d)
+          add_edge(v, u, c);
+      }
+    }
+    void load(std::vector<edge> e, bool d = false)
+    {
+      for (auto [u, v, c] : e)
+      {
+        add_edge(u, v, c);
+        if (!d)
+          add_edge(v, u, c);
+      }
+    }
+    void add_edge(int from, int to, T cost)
+    {
+      assert(0 <= from && from < _n);
+      assert(0 <= to && to < _n);
+      (*this)[from].push_back({to, cost});
+      _e.push_back({from, to, cost});
+    }
+    vt dijk(int s, T zero = 0, T unreachable = LLONG_MAX)
+    {
+      assert(0 <= s && s < _n);
+      vt dis(_n, unreachable);
+      _prev.assign(_n, -1);
+      std::priority_queue<std::pair<T, int>, std::vector<std::pair<T, int>>, std::greater<std::pair<T, int>>> q;
+      dis[s] = zero;
+      q.push({0, s});
+      while (q.size())
+      {
+        auto [tc, t] = q.top();
+        q.pop();
+        if (tc != dis[t])
+          continue;
+        for (auto [n, c] : (*this)[t])
+        {
+          assert(c >= 0);
+          if (dis[n] > tc + c)
+          {
+            dis[n] = tc + c;
+            _prev[n] = t;
+            q.push({dis[n], n});
+          }
+        }
+      }
+      return dis;
+    }
+    vt bellfo(int s, T zero = 0, T unreachable = LLONG_MAX, T inf = LLONG_MIN)
+    {
+      assert(0 <= s && s < _n);
+      vt dis(_n, unreachable);
+      _prev.assign(_n, -1);
+      dis[s] = zero;
+      for (int i = 0; i < 2 * _n; i++)
+      {
+        for (int t = 0; t < _n; t++)
+        {
+          if (dis[t] == unreachable)
+            continue;
+          for (auto [n, c] : (*this)[t])
+          {
+            if (dis[t] == inf)
+            {
+              dis[n] = inf;
+              _prev[n] = t;
+            }
+            else if (dis[n] > dis[t] + c)
+            {
+              if (i >= _n - 1)
+              {
+                dis[n] = inf;
+                _prev[n] = t;
+              }
+              else
+              {
+                dis[n] = dis[t] + c;
+                _prev[n] = t;
+              }
+            }
+          }
+        }
+      }
+      return dis;
+    }
+    vi prev()
+    {
+      return _prev;
+    }
+    vi path(int u, int v, bool n = false, T zero = 0, T unreachable = LLONG_MAX, T inf = LLONG_MIN)
+    {
+      if (n)
+        bellfo(v, zero, unreachable, inf);
+      else
+        dijk(v, zero, unreachable);
+      vi res;
+      int t = u;
+      while (true)
+      {
+        res.push_back(t);
+        if (t == v)
+          break;
+        t = _prev[t];
+      }
+      return res;
+    }
+    template <typename U>
+    T kruskal(U &uf, T zero = 0)
+    {
+      T res = zero;
+      sort(_e.begin(), _e.end());
+      for (Edge t : _e)
+      {
+        if (uf.same(t.from, t.to))
+          continue;
+        uf.merge(t.from, t.to);
+        res += t.cost;
+      }
+      return res;
+    }
+
+  private:
+    int _n;
+    vi _prev;
+    std::vector<Edge> _e;
+  };
+  template <typename T = long long>
+  struct Mat : std::vector<std::vector<T>>
+  {
+    using ll = long long;
+    using vt = std::vector<T>;
+    using vvt = std::vector<vt>;
+    Mat() {}
+    Mat(size_t r, T id = 1) : vvt(r), _r(r), _id(id) {}
+    Mat(size_t r, vt v, T id = 1) : vvt(r, v), _r(r), _c(v.size()), _id(id) {}
+    Mat(vvt m, T id = 1) : vvt(m), _r(m.size()), _c(m[0].size()), _id(id) {}
+    Mat(size_t r, size_t c, T id = 1) : vvt(r, vt(c)), _r(r), _c(c), _id(id) {}
+    Mat operator*(const Mat &b)
+    {
+      assert(_c == b._r);
+      Mat res(_r, b._c, _id);
+      for (size_t i = 0; i < _r; i++)
+        for (size_t j = 0; j < b._c; j++)
+          for (size_t k = 0; k < _c; k++)
+          {
+            res[i][j] = res[i][j] + (*this)[i][k] * b[k][j];
+          }
+      return res;
+    }
+    Mat operator*=(const Mat &b)
+    {
+      return *this = (*this) * b;
+    }
+    Mat pow(ll n)
+    {
+      assert(n >= 0);
+      assert(_r == _c);
+      Mat res(_r, _c, _id);
+      for (size_t i = 0; i < _r; i++)
+        res[i][i] = _id;
+      Mat x = *this;
+      while (n)
+      {
+        if (n & 1)
+        {
+          res *= x;
+        }
+        x *= x;
+        n >>= 1;
+      }
+      return res;
+    }
+
+  private:
+    size_t _r, _c;
+    T _id;
+  };
+  struct Mod
+  {
+    using ll = long long;
+    using vl = std::vector<ll>;
+    Mod(int m) : _m(m) {}
+    void set_mod(int m)
+    {
+      _m = m;
+      _F.resize(1);
+      _invF.resize(0);
+    }
+    ll pow(ll x, ll n)
+    {
+      assert(n >= 0);
+      if (n == 0)
+        return 1;
+      x %= _m;
+      if (n % 2)
+        return x * pow(x, n - 1) % _m;
+      else
+        return pow(x * x, n / 2);
+    }
+    ll F(size_t x)
+    {
+      while (_F.size() <= x)
+      {
+        _F.push_back(_F.size() * _F.back() % _m);
+      }
+      return _F[x];
+    }
+    ll invF(size_t x)
+    {
+      while (_invF.size() <= x)
+      {
+        _invF.push_back(pow(F(_invF.size()), _m - 2));
+      }
+      return _invF[x];
+    }
+    ll P(int n, int r)
+    {
+      if (std::min(n, r) < 0 || n < r)
+        return 0;
+      return F(n) * invF(n - r) % _m;
+    }
+    ll C(int n, int r)
+    {
+      if (std::min(n, r) < 0 || n < r)
+        return 0;
+      return F(n) * invF(r) % _m * invF(n - r) % _m;
+    }
+    ll H(int n, int r) { return C(n + r - 1, r); }
+
+  private:
+    int _m;
+    vl _F{1}, _invF;
+  };
+  struct Sieve
+  {
+    using ll = long long;
+    using vi = std::vector<int>;
+    int n;
+    vi f, primes;
+    Sieve(int n = 1) : n(n), f(n + 1, 1)
+    {
+      f[0] = f[1] = 0;
+      for (ll i = 2; i <= n; ++i)
+      {
+        if (!f[i])
+          continue;
+        primes.push_back(i);
+        for (ll j = i * i; j <= n; j += i)
+        {
+          f[j] = 0;
+        }
+      }
+    }
+    bool isPrime(int x)
+    {
+      assert(0 <= x && x <= n);
+      return f[x];
+    }
+    template <typename T>
+    std::vector<std::pair<T, int>> factor(T x)
+    {
+      std::vector<std::pair<T, int>>
+          res;
+      for (int p : primes)
+      {
+        if (x % p != 0)
+          continue;
+        int c = 0;
+        while (x % p == 0)
+          x /= p, ++c;
+        res.emplace_back(p, c);
+      }
+      if (x != 1)
+        res.emplace_back(x, 1);
+      return res;
+    }
+  };
+  template <typename T = int>
+  struct PersistentStack
+  {
+    PersistentStack() {}
+    T top() const
+    {
+      assert(_n > 0);
+      return _top->v;
+    }
+    bool empty() const
+    {
+      return _n == 0;
+    }
+    size_t size() const
+    {
+      return _n;
+    }
+    PersistentStack push(const T &v) const
+    {
+      Node *ntop = new Node();
+      ntop->v = v;
+      ntop->p = _top;
+      return PersistentStack(_n + 1, ntop);
+    }
+    PersistentStack pop() const
+    {
+      assert(_n > 0);
+      return PersistentStack(_n - 1, _top->p);
+    }
+
+  private:
+    struct Node
+    {
+      T v;
+      Node *p;
+    };
+    PersistentStack(int n, Node *top) : _n(n), _top(top){};
+    size_t _n = 0;
+    Node *_top = nullptr;
+  };
+  template <typename T = int, size_t SIZE = 10>
+  struct PersistentArray
+  {
+    PersistentArray(size_t n = 0) : PersistentArray(n, nullptr) {}
+    PersistentArray(const std::vector<T> &src) : PersistentArray(src.size())
+    {
+      for (size_t i = 0; i < _n; i++)
+      {
+        _destructive_set(_root, i, src[i]);
+      }
+    }
+    size_t size() const { return _n; }
+    PersistentArray resize(size_t n) const { return PersistentArray(n, _root); }
+    void destructive_set(size_t i, const T &v)
+    {
+      assert(i < _n);
+      _destructive_set(_root, i, v);
+    }
+    PersistentArray set(size_t i, const T &v) const
+    {
+      assert(i < _n);
+      Node *nr = _set(_root, i, v);
+      return PersistentArray(_n, nr);
+    }
+    T get(size_t i) const
+    {
+      assert(i < _n);
+      return _get(_root, i)->v;
+    }
+    PersistentArray push(const T &v) const
+    {
+      Node *nr = _set(_root, _n, v);
+      return PersistentArray(_n + 1, nr);
+    }
+    PersistentArray pop() const
+    {
+      assert(_n > 0);
+      return PersistentArray(_n - 1, _root);
+    }
+
+  private:
+    struct Node
+    {
+      T v;
+      Node *ch[SIZE] = {};
+    };
+    size_t _n;
+    Node *_root = nullptr;
+    PersistentArray(size_t n, Node *root) : _n(n), _root(root) {}
+    void _destructive_set(Node *t, size_t i, const T &v)
+    {
+      if (!t)
+        t = new Node();
+      if (i == 0)
+        t->v = v;
+      else
+        _destructive_set(t->ch[i % SIZE], i / SIZE, v);
+    }
+    Node *_set(const Node *t, size_t i, const T &v) const
+    {
+      Node *res = new Node();
+      if (t)
+      {
+        res->v = t->v;
+        memcpy(res->ch, t->ch, sizeof(t->ch));
+      }
+      if (i == 0)
+        res->v = v;
+      else
+        res->ch[i % SIZE] = _set(res->ch[i % SIZE], i / SIZE, v);
+      return res;
+    }
+    Node *_get(Node *t, size_t i) const
+    {
+      if (!t)
+        return new Node();
+      if (i == 0)
+        return t;
+      return _get(t->ch[i % SIZE], i / SIZE);
+    }
+  };
+  ll sqsum(ll a, ll b) { return a * a + b * b; }
+  ll sq(ll a) { return a * a; }
+  ll fact(ll n)
+  {
+    if (n == 1)
+      return 1;
+    return n * fact(n - 1);
+  }
+  ll com(int n, int r)
+  {
+    ll t = 1;
+    for (ll i = 0; i < r; i++)
+    {
+      t *= (n - r + 1 + i);
+      t /= (i + 1);
+    }
+    return t;
+  }
+  ll sqrtll(ll x)
+  {
+    ll r = round(sqrt((double)x));
+    ll rr = r * r;
+    if (rr > x)
+      r--;
+    return r;
+  }
+  template <typename T, typename U>
+  bool chmax(T &a, const U &b)
+  {
+    if (a < b)
+    {
+      a = b;
+      return true;
+    }
+    return false;
+  }
+  template <typename T, typename U>
+  bool chmin(T &a, const U &b)
+  {
+    if (a > b)
+    {
+      a = b;
+      return true;
+    }
+    return false;
+  }
+  template <typename T, typename U>
+  void chgcd(T &a, const U &b) { a = std::gcd(a, b); }
+  template <typename T = int>
+  std::vector<T> mkiota(int n, T s = 0)
+  {
+    std::vector<T> res(n);
+    std::iota(res.begin(), res.end(), s);
+    return res;
+  }
+  std::vector<int> mkr(std::vector<int> p)
+  {
+    int n = p.size();
+    std::vector<int> r(n);
+    for (int i = 0; i < n; i++)
+      r[p[i]] = i;
+    return r;
+  }
+  template <typename T>
+  std::vector<std::pair<T, int>> mkvi(std::vector<T> v)
+  {
+    int n = v.size();
+    std::vector<std::pair<T, int>> res(n);
+    for (int i = 0; i < n; i++)
+      res[i] = {v[i], i};
+    return res;
+  }
+  template <typename T>
+  T vsum(const std::vector<T> &v)
+  {
+    T sum = 0;
+    for (const T &x : v)
+      sum += x;
+    return sum;
+  }
+  template <typename T>
+  void distinct(std::vector<T> &v)
+  {
+    sort(v.begin(), v.end());
+    v.erase(unique(v.begin(), v.end()), v.end());
+  }
+  template <typename T>
+  T vmax(const std::vector<T> &v) { return *max_element(v.begin(), v.end()); }
+  template <typename T>
+  T vmin(const std::vector<T> &v) { return *min_element(v.begin(), v.end()); }
+  template <typename T>
+  std::vector<T> comp(std::vector<T> &a)
+  {
+    std::vector<T> ret;
+    std::set<T> s;
+    for (const T &x : a)
+      s.insert(x);
+    std::map<T, int> idx;
+    int i = 0;
+    for (const T &x : s)
+    {
+      idx[x] = i;
+      ret.pb(x);
+      i++;
+    }
+    for (T &x : a)
+      x = idx[x];
+    return ret;
+  }
+  template <typename... Args>
+  void input(Args &&...args)
+  {
+    (std::cin >> ... >> args);
+  }
+  std::ostream &operator<<(std::ostream &os, const atcoder::modint &x)
+  {
+    os << x.val();
+    return os;
+  }
+  std::istream &operator>>(std::istream &is, atcoder::modint &x)
+  {
+    int a;
+    is >> a;
+    x = a;
+    return is;
+  }
+  template <typename T>
+  void print(const std::vector<T> &a, std::string s = " ")
+  {
+    for (auto x : a)
+      std::cout << x << s;
+  }
+  template <typename T>
+  void print(const std::vector<T> &a, T add, std::string s = " ")
+  {
+    for (auto x : a)
+      std::cout << x + add << s;
+  }
+  template <typename T>
+  void print(std::vector<std::vector<T>> &a, std::string s = " ")
+  {
+    for (std::vector<T> &v : a)
+    {
+      print(v, s);
+      std::cout << "\n";
+    }
+  }
+  template <typename T>
+  void print(std::vector<std::vector<T>> &a, T add, std::string s = " ")
+  {
+    for (std::vector<T> &v : a)
+    {
+      print(v, add, s);
+      std::cout << "\n";
+    }
+  }
+  void set_mod(int m) { atcoder::modint::set_mod(m); }
+  template <typename T>
+  int biti(T bit, int i)
+  {
+    return bit >> i & 1;
+  }
+  unsigned long xor128()
+  {
+    static unsigned long x = 123456789, y = 362436069, z = 521288629, w = 88675123;
+    unsigned long t = (x ^ (x << 11));
+    x = y;
+    y = z;
+    z = w;
+    return (w = (w ^ (w >> 19)) ^ (t ^ (t >> 8)));
+  }
+  template <typename T = long long, typename F>
+  T nibutan(T ok, T ng, const F &valid)
+  {
+    while (abs(ok - ng) > 1)
+    {
+      T m = (ok + ng) / 2;
+      if (valid(m))
+        ok = m;
+      else
+        ng = m;
+    }
+    return ok;
+  }
+}
+
 using namespace std;
 using namespace atcoder;
+using namespace my_lib;
 
 #pragma region macro
 #define LINF (ll)2e18
@@ -102,931 +1017,6 @@ using vm = vector<mint>;
 using vvm = vector<vm>;
 using vvvm = vector<vvm>;
 #pragma endregion using
-
-struct Sieve
-{
-  using ll = long long;
-  using vi = vector<int>;
-  int n;
-  vi f, primes;
-  Sieve(int n = 1) : n(n), f(n + 1, 1)
-  {
-    f[0] = f[1] = 0;
-    for (ll i = 2; i <= n; ++i)
-    {
-      if (!f[i])
-        continue;
-      primes.push_back(i);
-      for (ll j = i * i; j <= n; j += i)
-      {
-        f[j] = 0;
-      }
-    }
-  }
-  bool isPrime(int x)
-  {
-    assert(0 <= x && x <= n);
-    return f[x];
-  }
-  template <typename T>
-  vector<pair<T, int>> factor(T x)
-  {
-    vector<pair<T, int>>
-        res;
-    for (int p : primes)
-    {
-      if (x % p != 0)
-        continue;
-      int c = 0;
-      while (x % p == 0)
-        x /= p, ++c;
-      res.emplace_back(p, c);
-    }
-    if (x != 1)
-      res.emplace_back(x, 1);
-    return res;
-  }
-};
-template <typename T = long long>
-struct Mat : vector<vector<T>>
-{
-  using vt = vector<T>;
-  using vvt = vector<vt>;
-  Mat() {}
-  Mat(size_t r, T id = 1) : vvt(r), _r(r), _id(id) {}
-  Mat(size_t r, vt v, T id = 1) : vvt(r, v), _r(r), _c(v.size()), _id(id) {}
-  Mat(vvt m, T id = 1) : vvt(m), _r(m.size()), _c(m[0].size()), _id(id) {}
-  Mat(size_t r, size_t c, T id = 1) : vvt(r, vt(c)), _r(r), _c(c), _id(id) {}
-  Mat operator*(const Mat &b)
-  {
-    assert(_c == b._r);
-    Mat res(_r, b._c, _id);
-    for (size_t i = 0; i < _r; i++)
-      for (size_t j = 0; j < b._c; j++)
-        for (size_t k = 0; k < _c; k++)
-        {
-          res[i][j] = res[i][j] + (*this)[i][k] * b[k][j];
-        }
-    return res;
-  }
-  Mat operator*=(const Mat &b)
-  {
-    return *this = (*this) * b;
-  }
-  Mat pow(ll n)
-  {
-    assert(n >= 0);
-    assert(_r == _c);
-    Mat res(_r, _c, _id);
-    for (size_t i = 0; i < _r; i++)
-      res[i][i] = _id;
-    Mat x = *this;
-    while (n)
-    {
-      if (n & 1)
-      {
-        res *= x;
-      }
-      x *= x;
-      n >>= 1;
-    }
-    return res;
-  }
-
-private:
-  size_t _r, _c;
-  T _id;
-};
-struct Mod
-{
-  using ll = long long;
-  using vl = vector<ll>;
-  Mod(int m) : _m(m) {}
-  void set_mod(int m)
-  {
-    _m = m;
-    _F.resize(1);
-    _invF.resize(0);
-  }
-  ll pow(ll x, ll n)
-  {
-    assert(n >= 0);
-    if (n == 0)
-      return 1;
-    x %= _m;
-    if (n % 2)
-      return x * pow(x, n - 1) % _m;
-    else
-      return pow(x * x, n / 2);
-  }
-  ll F(size_t x)
-  {
-    while (_F.size() <= x)
-    {
-      _F.push_back(_F.size() * _F.back() % _m);
-    }
-    return _F[x];
-  }
-  ll invF(size_t x)
-  {
-    while (_invF.size() <= x)
-    {
-      _invF.push_back(pow(F(_invF.size()), _m - 2));
-    }
-    return _invF[x];
-  }
-  ll P(int n, int r)
-  {
-    if (min(n, r) < 0 || n < r)
-      return 0;
-    return F(n) * invF(n - r) % _m;
-  }
-  ll C(int n, int r)
-  {
-    if (min(n, r) < 0 || n < r)
-      return 0;
-    return F(n) * invF(r) % _m * invF(n - r) % _m;
-  }
-  ll H(int n, int r) { return C(n + r - 1, r); }
-
-private:
-  int _m;
-  vl _F{1}, _invF;
-};
-struct Graph : vector<vector<int>>
-{
-  using vi = vector<int>;
-  using vvi = vector<vi>;
-  Graph(int n = 0, int m = 0, bool d = false) : vvi(n), _n(n) { load(m, d); }
-  Graph(int n, vector<pair<int, int>> e, bool d = false) : Graph(n) { load(e, d); }
-  Graph(vvi g) : vvi(g), _n(g.size()) {}
-  void resize(int n)
-  {
-    _n = n;
-    vvi::resize(n);
-  }
-  void load(int m, bool d = false)
-  {
-    for (int i = 0; i < m; i++)
-    {
-      int u, v;
-      cin >> u >> v;
-      u--, v--;
-      add_edge(u, v);
-      if (!d)
-        add_edge(v, u);
-    }
-  }
-  void load(vector<pair<int, int>> e, bool d = false)
-  {
-    for (auto [u, v] : e)
-    {
-      add_edge(u, v);
-      if (!d)
-        add_edge(v, u);
-    }
-  }
-  void add_edge(int from, int to)
-  {
-    assert(0 <= from && from < _n);
-    assert(0 <= to && to < _n);
-    (*this)[from].push_back(to);
-  }
-  vi dis(int s)
-  {
-    assert(0 <= s && s < _n);
-    queue<int> q;
-    _dis.assign(_n, INT_MAX);
-    _prev.assign(_n, -1);
-    _dis[s] = 0;
-    q.push(s);
-    while (q.size())
-    {
-      int t = q.front();
-      q.pop();
-      for (int n : (*this)[t])
-      {
-        if (_dis[n] > _dis[t] + 1)
-        {
-          _dis[n] = _dis[t] + 1;
-          _prev[n] = t;
-          q.push(n);
-        }
-      }
-    }
-    return _dis;
-  }
-  vi prev()
-  {
-    return _prev;
-  }
-  vi path(int u, int v)
-  {
-    dis(v);
-    vi res;
-    int t = u;
-    while (true)
-    {
-      res.push_back(t);
-      if (t == v)
-        break;
-      t = _prev[t];
-    }
-    return res;
-  }
-  vi tpsort()
-  {
-    vi in(_n);
-    for (int i = 0; i < _n; i++)
-      for (int j : (*this)[i])
-        in[j]++;
-    queue<int> q;
-    for (int i = 0; i < _n; i++)
-      if (!in[i])
-        q.push(i);
-    vi res;
-    while (q.size())
-    {
-      int t = q.front();
-      q.pop();
-      for (int n : (*this)[t])
-      {
-        in[n]--;
-        if (!in[n])
-          q.push(n);
-      }
-      res.push_back(t);
-    }
-    return res;
-  }
-  bool isBG()
-  {
-    _c.assign(_n, -1);
-    queue<int> q;
-    _c[0] = 0;
-    q.push(0);
-    while (q.size())
-    {
-      int t = q.front();
-      q.pop();
-      for (int n : (*this)[t])
-      {
-        if (_c[n] == _c[t])
-          return false;
-        if (_c[n] == -1)
-        {
-          _c[n] = !_c[t];
-          q.push(n);
-        }
-      }
-    }
-    return true;
-  }
-  vi color()
-  {
-    return _c;
-  }
-
-protected:
-  int _n;
-  vi _dis, _prev, _c;
-};
-struct Tree : Graph
-{
-  Tree(int n = 0) : Graph(n, n - 1) {}
-  Tree(vvi t) : Graph(t) {}
-  tuple<int, int, int> dia()
-  {
-    dis(0);
-    int s = max_element(_dis.begin(), _dis.end()) - _dis.begin();
-    dis(s);
-    int t = max_element(_dis.begin(), _dis.end()) - _dis.begin();
-    return {_dis[t], s, t};
-  }
-  vvi doubling(int r)
-  {
-    assert(0 <= r && r < _n);
-    _parent.assign(_n, vi(30, -1));
-    dis(r);
-    for (int i = 0; i < _n; i++)
-      _parent[i][0] = _prev[i];
-    for (int j = 0; j < 30; j++)
-      for (int i = 0; i < _n; i++)
-      {
-        int tp = _parent[i][j];
-        if (tp != -1)
-          _parent[i][j + 1] = _parent[tp][j];
-      }
-    return _parent;
-  }
-  int lca(int a, int b)
-  {
-    assert(0 <= a && a < _n);
-    assert(0 <= b && b < _n);
-    if (_dis[a] > _dis[b])
-      std::swap(a, b);
-    for (int i = 0; i < 30; i++)
-    {
-      if ((_dis[b] - _dis[a]) >> i & 1)
-        b = _parent[b][i];
-    }
-    if (a == b)
-      return a;
-    while (_parent[a][0] != _parent[b][0])
-    {
-      int l = 0, r = 30;
-      while (r - l > 1)
-      {
-        int m = (l + r) / 2;
-        if (_parent[a][m] == _parent[b][m])
-          r = m;
-        else
-          l = m;
-      }
-      a = _parent[a][l];
-      b = _parent[b][l];
-    }
-    return _parent[a][0];
-  }
-  vi preorder(int r)
-  {
-    assert(0 <= r && r < _n);
-    vi idx(_n);
-    function<int(int, int)> dfs = [&](int t, int p)
-    {
-      int i = idx[t];
-      for (int n : (*this)[t])
-      {
-        if (n == p)
-          continue;
-        idx[n] = i + 1;
-        i = dfs(n, t);
-      }
-      return i;
-    };
-    dfs(r, -1);
-    return idx;
-  }
-  vi postorder(int r)
-  {
-    assert(0 <= r && r < _n);
-    vi idx(_n);
-    int i = 0;
-    function<int(int, int)> dfs = [&](int t, int p)
-    {
-      for (int n : (*this)[t])
-      {
-        if (n == p)
-          continue;
-        dfs(n, t);
-      }
-      return idx[t] = i++;
-    };
-    dfs(r, -1);
-    return idx;
-  }
-  vi dis(int s) { return Graph::dis(s); }
-  int dis(int u, int v)
-  {
-    assert(0 <= u && u < _n);
-    assert(0 <= v && v < _n);
-    int a = lca(u, v);
-    return _dis[u] + _dis[v] - 2 * _dis[a];
-  }
-  template <typename T, typename F1, typename F2>
-  vector<T> rerooting(const F1 merge, const F2 f, const T &id)
-  {
-    vector<T> dp(_n, id);
-    const function<void(int, int)> dfs1 = [&](int t, int p)
-    {
-      for (int n : (*this)[t])
-      {
-        if (n == p)
-          continue;
-        dfs1(n, t);
-        dp[t] = merge(dp[t], f(dp[n]));
-      }
-    };
-    const function<void(int, int, T)> dfs2 = [&](int t, int p, const T dp_p)
-    {
-      if (p != -1)
-        dp[t] = merge(dp[t], f(dp_p));
-      int n = (*this)[t].size();
-      vector<T> l(n, id), r(n, id);
-      for (int i = 0; i < n - 1; i++)
-      {
-        int c = (*this)[t][i];
-        T a = c == p ? dp_p : dp[c];
-        l[i + 1] = merge(l[i], f(a));
-      }
-      for (int i = n - 2; i >= 0; i--)
-      {
-        int c = (*this)[t][i + 1];
-        T a = c == p ? dp_p : dp[c];
-        r[i] = merge(r[i + 1], f(a));
-      }
-      for (int i = 0; i < n; i++)
-      {
-        int c = (*this)[t][i];
-        if (c == p)
-          continue;
-        dfs2(c, t, merge(l[i], r[i]));
-      }
-    };
-    dfs1(0, -1);
-    dfs2(0, -1, id);
-    return dp;
-  }
-
-protected:
-  vvi _parent;
-};
-template <typename T = long long>
-struct CGraph : vector<vector<pair<int, T>>>
-{
-  using vt = vector<T>;
-  using vi = vector<int>;
-  using vvp = vector<vector<pair<int, T>>>;
-  using edge = tuple<int, int, T>;
-  struct Edge
-  {
-    int to, from;
-    T cost;
-    bool operator<(const Edge b)
-    {
-      return cost < b.cost;
-    }
-  };
-
-  CGraph(int n = 0, int m = 0, bool d = false) : _n(n), vvp(n) { load(m, d); }
-  CGraph(int n, vector<edge> e, bool d = false) : CGraph(n) { load(e, d); }
-  CGraph(vvp g) : vvp(g) { _n = g.size(); }
-  void resize(int n)
-  {
-    _n = n;
-    vvp::resize(n);
-  }
-  void load(int m, bool d = false)
-  {
-    for (int i = 0; i < m; i++)
-    {
-      int u, v;
-      T c;
-      cin >> u >> v >> c;
-      u--, v--;
-      add_edge(u, v, c);
-      if (!d)
-        add_edge(v, u, c);
-    }
-  }
-  void load(vector<edge> e, bool d = false)
-  {
-    for (auto [u, v, c] : e)
-    {
-      add_edge(u, v, c);
-      if (!d)
-        add_edge(v, u, c);
-    }
-  }
-  void add_edge(int from, int to, T cost)
-  {
-    assert(0 <= from && from < _n);
-    assert(0 <= to && to < _n);
-    (*this)[from].push_back({to, cost});
-    _e.push_back({from, to, cost});
-  }
-  vt dijk(int s, T zero = 0, T unreachable = LLONG_MAX)
-  {
-    assert(0 <= s && s < _n);
-    vt dis(_n, unreachable);
-    _prev.assign(_n, -1);
-    priority_queue<pair<T, int>, vector<pair<T, int>>, greater<pair<T, int>>> q;
-    dis[s] = zero;
-    q.push({0, s});
-    while (q.size())
-    {
-      auto [tc, t] = q.top();
-      q.pop();
-      if (tc != dis[t])
-        continue;
-      for (auto [n, c] : (*this)[t])
-      {
-        assert(c >= 0);
-        if (dis[n] > tc + c)
-        {
-          dis[n] = tc + c;
-          _prev[n] = t;
-          q.push({dis[n], n});
-        }
-      }
-    }
-    return dis;
-  }
-  vt bellfo(int s, T zero = 0, T unreachable = LLONG_MAX, T inf = LLONG_MIN)
-  {
-    assert(0 <= s && s < _n);
-    vt dis(_n, unreachable);
-    _prev.assign(_n, -1);
-    dis[s] = zero;
-    for (int i = 0; i < 2 * _n; i++)
-    {
-      for (int t = 0; t < _n; t++)
-      {
-        if (dis[t] == unreachable)
-          continue;
-        for (auto [n, c] : (*this)[t])
-        {
-          if (dis[t] == inf)
-          {
-            dis[n] = inf;
-            _prev[n] = t;
-          }
-          else if (dis[n] > dis[t] + c)
-          {
-            if (i >= _n - 1)
-            {
-              dis[n] = inf;
-              _prev[n] = t;
-            }
-            else
-            {
-              dis[n] = dis[t] + c;
-              _prev[n] = t;
-            }
-          }
-        }
-      }
-    }
-    return dis;
-  }
-  vi prev()
-  {
-    return _prev;
-  }
-  vi path(int u, int v, bool n = false)
-  {
-    if (n)
-      bellfo(v);
-    else
-      dijk(v);
-    vi res;
-    int t = u;
-    while (true)
-    {
-      res.push_back(t);
-      if (t == v)
-        break;
-      t = _prev[t];
-    }
-    return res;
-  }
-  template <typename U>
-  T kruskal(U &uf, T zero = 0)
-  {
-    T res = zero;
-    sort(_e.begin(), _e.end());
-    for (Edge t : _e)
-    {
-      if (uf.same(t.from, t.to))
-        continue;
-      uf.merge(t.from, t.to);
-      res += t.cost;
-    }
-    return res;
-  }
-
-private:
-  int _n;
-  vi _prev;
-  vector<Edge> _e;
-};
-template <typename T = int>
-struct PersistentStack
-{
-  PersistentStack() {}
-  T top() const
-  {
-    assert(_n > 0);
-    return _top->v;
-  }
-  bool empty() const
-  {
-    return _n == 0;
-  }
-  size_t size() const
-  {
-    return _n;
-  }
-  PersistentStack push(const T &v) const
-  {
-    Node *ntop = new Node();
-    ntop->v = v;
-    ntop->p = _top;
-    return PersistentStack(_n + 1, ntop);
-  }
-  PersistentStack pop() const
-  {
-    assert(_n > 0);
-    return PersistentStack(_n - 1, _top->p);
-  }
-
-private:
-  struct Node
-  {
-    T v;
-    Node *p;
-  };
-  PersistentStack(int n, Node *top) : _n(n), _top(top){};
-  size_t _n = 0;
-  Node *_top = nullptr;
-};
-template <typename T = int, size_t SIZE = 10>
-struct PersistentArray
-{
-  PersistentArray(size_t n = 0) : PersistentArray(n, nullptr) {}
-  PersistentArray(const vector<T> &src) : PersistentArray(src.size())
-  {
-    for (size_t i = 0; i < _n; i++)
-    {
-      _destructive_set(_root, i, src[i]);
-    }
-  }
-
-  size_t size() { return _n; }
-
-  PersistentArray resize(size_t n) { return PersistentArray(n,_root); }
-
-  void destructive_set(size_t i, const T &v)
-  {
-    assert(i < _n);
-    _destructive_set(_root, i, v);
-  }
-
-  PersistentArray set(size_t i, const T &v)
-  {
-    assert(i < _n);
-    Node *nr = _set(_root, i, v);
-    return PersistentArray(_n, nr);
-  }
-
-  T get(size_t i)
-  {
-    assert(i < _n);
-    return _get(_root, i)->v;
-  }
-
-  PersistentArray push(const T &v)
-  {
-    Node *nr = _set(_root, _n, v);
-    return PersistentArray(_n + 1, nr);
-  }
-
-  PersistentArray pop()
-  {
-    assert(_n > 0);
-    return PersistentArray(_n - 1, _root);
-  }
-
-private:
-  struct Node
-  {
-    T v;
-    Node *ch[SIZE] = {};
-  };
-  size_t _n;
-  Node *_root = nullptr;
-  PersistentArray(size_t n, Node *root) : _n(n), _root(root) {}
-
-  void _destructive_set(Node *t, size_t i, const T &v)
-  {
-    if (!t)
-      t = new Node();
-    if (i == 0)
-      t->v = v;
-    else
-      _destructive_set(t->ch[i % SIZE], i / SIZE, v);
-  }
-
-  Node *_set(const Node *t, size_t i, const T &v)
-  {
-    Node *res = new Node();
-    if (t)
-    {
-      res->v = t->v;
-      memcpy(res->ch, t->ch, sizeof(t->ch));
-    }
-    if (i == 0)
-      res->v = v;
-    else
-      res->ch[i % SIZE] = _set(res->ch[i % SIZE], i / SIZE, v);
-    return res;
-  }
-  Node *_get(Node *t, size_t i)
-  {
-    if (!t)
-      return new Node();
-    if (i == 0)
-      return t;
-    return _get(t->ch[i % SIZE], i / SIZE);
-  }
-};
-namespace math
-{
-  using ll = long long;
-  ll sqsum(ll a, ll b) { return a * a + b * b; }
-  ll sq(ll a) { return a * a; }
-  ll fact(ll n)
-  {
-    if (n == 1)
-      return 1;
-    return n * fact(n - 1);
-  }
-  ll com(int n, int r)
-  {
-    ll t = 1;
-    for (ll i = 0; i < r; i++)
-    {
-      t *= (n - r + 1 + i);
-      t /= (i + 1);
-    }
-    return t;
-  }
-  ll sqrtll(ll x)
-  {
-    ll r = round(sqrt((double)x));
-    ll rr = r * r;
-    if (rr > x)
-      r--;
-    return r;
-  }
-  template <typename T, typename U>
-  bool chmax(T &a, const U &b)
-  {
-    if (a < b)
-    {
-      a = b;
-      return true;
-    }
-    return false;
-  }
-  template <typename T, typename U>
-  bool chmin(T &a, const U &b)
-  {
-    if (a > b)
-    {
-      a = b;
-      return true;
-    }
-    return false;
-  }
-  template <typename T, typename U>
-  void chgcd(T &a, const U &b) { a = gcd(a, b); }
-}
-using namespace math;
-namespace vec
-{
-  template <typename T = int>
-  vector<T> mkiota(int n, T s = 0)
-  {
-    vector<T> res(n);
-    std::iota(res.begin(), res.end(), s);
-    return res;
-  }
-  vector<int> mkr(vector<int> p)
-  {
-    int n = p.size();
-    vector<int> r(n);
-    for (int i = 0; i < n; i++)
-      r[p[i]] = i;
-    return r;
-  }
-  template <typename T>
-  vector<pair<T, int>> mkvi(vector<T> v)
-  {
-    int n = v.size();
-    vector<pair<T, int>> res(n);
-    for (int i = 0; i < n; i++)
-      res[i] = {v[i], i};
-    return res;
-  }
-  template <typename T>
-  T vsum(const vector<T> &v)
-  {
-    T sum = 0;
-    for (const T &x : v)
-      sum += x;
-    return sum;
-  }
-  template <typename T>
-  void distinct(vector<T> &v)
-  {
-    sort(v.begin(), v.end());
-    v.erase(unique(v.begin(), v.end()), v.end());
-  }
-  template <typename T>
-  T vmax(const vector<T> &v) { return *max_element(v.begin(), v.end()); }
-  template <typename T>
-  T vmin(const vector<T> &v) { return *min_element(v.begin(), v.end()); }
-  template <typename T>
-  vector<T> comp(vector<T> &a)
-  {
-    vector<T> ret;
-    set<T> s;
-    for (const T &x : a)
-      s.insert(x);
-    map<T, int> idx;
-    int i = 0;
-    for (const T &x : s)
-    {
-      idx[x] = i;
-      ret.pb(x);
-      i++;
-    }
-    for (T &x : a)
-      x = idx[x];
-    return ret;
-  }
-}
-using namespace vec;
-namespace util
-{
-  template <typename... Args>
-  void input(Args &&...args)
-  {
-    (cin >> ... >> args);
-  }
-  ostream &operator<<(ostream &os, const modint &x)
-  {
-    os << x.val();
-    return os;
-  }
-  istream &operator>>(istream &is, modint &x)
-  {
-    int a;
-    is >> a;
-    x = a;
-    return is;
-  }
-  template <typename T>
-  void print(const vector<T> &a, string s = " ")
-  {
-    for (auto x : a)
-      cout << x << s;
-  }
-  template <typename T>
-  void print(const vector<T> &a, T add, string s = " ")
-  {
-    for (auto x : a)
-      cout << x + add << s;
-  }
-  template <typename T>
-  void print(vector<vector<T>> &a, string s = " ")
-  {
-    for (vector<T> &v : a)
-    {
-      print(v, s);
-      cout << endl;
-    }
-  }
-  template <typename T>
-  void print(vector<vector<T>> &a, T add, string s = " ")
-  {
-    for (vector<T> &v : a)
-    {
-      print(v, add, s);
-      cout << endl;
-    }
-  }
-  void set_mod(int m) { modint::set_mod(m); }
-  template <typename T>
-  int biti(T bit, int i)
-  {
-    return bit >> i & 1;
-  }
-  unsigned long xor128()
-  {
-    static unsigned long x = 123456789, y = 362436069, z = 521288629, w = 88675123;
-    unsigned long t = (x ^ (x << 11));
-    x = y;
-    y = z;
-    z = w;
-    return (w = (w ^ (w >> 19)) ^ (t ^ (t >> 8)));
-  }
-  template <typename T = long long, typename F>
-  T nibutan(T ok, T ng, F valid)
-  {
-    while (abs(ok - ng) > 1)
-    {
-      T m = (ok + ng) / 2;
-      if (valid(m))
-        ok = m;
-      else
-        ng = m;
-    }
-    return ok;
-  }
-}
-using namespace util;
 
 //*
 const int mod = 998244353;
