@@ -27,9 +27,9 @@ namespace my_lib
         return res;
     }
     template <typename T>
-    T vsum(const std::vector<T> &v)
+    T vsum(const std::vector<T> &v, const T &zero = 0)
     {
-        T sum = 0;
+        T sum = zero;
         for (const T &x : v)
             sum += x;
         return sum;
@@ -62,5 +62,15 @@ namespace my_lib
         for (T &x : a)
             x = idx[x];
         return ret;
+    }
+    template <typename T>
+    size_t argmax(std::vector<T> v)
+    {
+        return max_element(v.begin(), v.end()) - v.begin();
+    }
+    template <typename T>
+    size_t argmin(std::vector<T> v)
+    {
+        return min_element(v.begin(), v.end()) - v.begin();
     }
 }
