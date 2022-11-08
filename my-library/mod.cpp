@@ -10,8 +10,9 @@ namespace my_lib
         void set_mod(int m)
         {
             _m = m;
-            _F.resize(1);
-            _invF.resize(0);
+            _F.resize(2);
+            _invF.resize(2);
+            _inv.resize(2);
         }
         ll pow(ll x, ll n)
         {
@@ -34,9 +35,13 @@ namespace my_lib
         }
         ll invF(size_t x)
         {
+            while (_inv.size() <= x)
+            {
+                _inv.push_back(_m - _inv[_m % _inv.size()] * (_m / _inv.size()) % _m);
+            }
             while (_invF.size() <= x)
             {
-                _invF.push_back(pow(F(_invF.size()), _m - 2));
+                _invF.push_back(_inv[_invF.size()] * _invF.back() % _m);
             }
             return _invF[x];
         }
@@ -56,6 +61,6 @@ namespace my_lib
 
     private:
         int _m;
-        vl _F{1}, _invF;
+        vl _F{1, 1}, _invF{1, 1}, _inv{0, 1};
     };
 }
