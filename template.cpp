@@ -837,7 +837,7 @@ namespace my_lib
     for (const T &x : s)
     {
       idx[x] = i;
-      ret.pb(x);
+      ret.push_back(x);
       i++;
     }
     for (T &x : a)
