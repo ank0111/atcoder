@@ -919,6 +919,20 @@ namespace my_lib
     }
     return ok;
   }
+  template <typename T = double, typename F, typename Comp>
+  T sanbutan(T l, T r, const F &f, const Comp &comp, size_t cnt = 1000)
+  {
+    while (cnt--)
+    {
+      T m1 = (l * 2 + r) / 3;
+      T m2 = (l + r * 2) / 3;
+      if (comp(f(m1), f(m2)))
+        r = m2;
+      else
+        l = m1;
+    }
+    return l;
+  }
 }
 
 using namespace std;
