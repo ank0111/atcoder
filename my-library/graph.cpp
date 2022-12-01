@@ -41,13 +41,13 @@ namespace my_lib
             assert(0 <= to && to < _n);
             (*this)[from].push_back(to);
         }
-        vi dis(int s)
+        vi dis(int s, vi *pp = nullptr) const
         {
             assert(0 <= s && s < _n);
             std::queue<int> q;
-            _dis.assign(_n, INT_MAX);
-            _prev.assign(_n, -1);
-            _dis[s] = 0;
+            vi dis(_n, INT_MAX);
+            vi prev(_n, -1);
+            dis[s] = 0;
             q.push(s);
             while (q.size())
             {
@@ -55,23 +55,24 @@ namespace my_lib
                 q.pop();
                 for (int n : (*this)[t])
                 {
-                    if (_dis[n] > _dis[t] + 1)
+                    if (dis[n] > dis[t] + 1)
                     {
-                        _dis[n] = _dis[t] + 1;
-                        _prev[n] = t;
+                        dis[n] = dis[t] + 1;
+                        prev[n] = t;
                         q.push(n);
                     }
                 }
             }
-            return _dis;
+            if (pp != nullptr)
+            {
+                *pp = prev;
+            }
+            return dis;
         }
-        vi prev()
+        vi path(int u, int v) const
         {
-            return _prev;
-        }
-        vi path(int u, int v)
-        {
-            dis(v);
+            vi prev;
+            dis(v, &prev);
             vi res;
             int t = u;
             while (true)
@@ -79,11 +80,11 @@ namespace my_lib
                 res.push_back(t);
                 if (t == v)
                     break;
-                t = _prev[t];
+                t = prev[t];
             }
             return res;
         }
-        vi tpsort()
+        vi tpsort() const
         {
             vi in(_n);
             for (int i = 0; i < _n; i++)
@@ -108,7 +109,7 @@ namespace my_lib
             }
             return res;
         }
-        bool isBG(vi *cp = nullptr)
+        bool isBG(vi *cp = nullptr) const
         {
             vi c(_n, -1);
             for (int i = 0; i < _n; i++)
@@ -144,28 +145,47 @@ namespace my_lib
 
     protected:
         int _n;
-        vi _dis, _prev;
     };
 
     struct Tree : Graph
     {
         Tree(int n = 0) : Graph(n, n - 1) {}
         Tree(vvi t) : Graph(t) {}
-        std::tuple<int, int, int> dia()
+        std::tuple<int, int, int> dia(vi *dp = nullptr, vi *pp = nullptr) const
         {
-            dis(0);
-            int s = max_element(_dis.begin(), _dis.end()) - _dis.begin();
-            dis(s);
-            int t = max_element(_dis.begin(), _dis.end()) - _dis.begin();
-            return {_dis[t], s, t};
+            vi dis = this->dis(0);
+            int s = max_element(dis.begin(), dis.end()) - dis.begin();
+            dis = this->dis(s, pp);
+            int t = max_element(dis.begin(), dis.end()) - dis.begin();
+            if (dp != nullptr)
+            {
+                *dp = dis;
+            }
+            return {dis[t], s, t};
+        }
+        std::vector<int> cen() const
+        {
+            vi dis, prev;
+            auto [d, s, t] = dia(&dis, &prev);
+            while (dis[t] > (d + 1) / 2)
+            {
+                t = prev[t];
+            }
+            std::vector<int> c{t};
+            if (d % 2)
+            {
+                c.push_back(prev[t]);
+            }
+            return c;
         }
         vvi doubling(int r)
         {
             assert(0 <= r && r < _n);
             _parent.assign(_n, vi(30, -1));
-            dis(r);
+            vi prev;
+            _dis = dis(r, &prev);
             for (int i = 0; i < _n; i++)
-                _parent[i][0] = _prev[i];
+                _parent[i][0] = prev[i];
             for (int j = 0; j < 30; j++)
                 for (int i = 0; i < _n; i++)
                 {
@@ -175,7 +195,7 @@ namespace my_lib
                 }
             return _parent;
         }
-        int lca(int a, int b)
+        int lca(int a, int b) const
         {
             assert(0 <= a && a < _n);
             assert(0 <= b && b < _n);
@@ -204,7 +224,7 @@ namespace my_lib
             }
             return _parent[a][0];
         }
-        vi preorder(int r)
+        vi preorder(int r) const
         {
             assert(0 <= r && r < _n);
             vi idx(_n);
@@ -223,7 +243,7 @@ namespace my_lib
             dfs(dfs, r, -1);
             return idx;
         }
-        vi postorder(int r)
+        vi postorder(int r) const
         {
             assert(0 <= r && r < _n);
             vi idx(_n);
@@ -241,8 +261,8 @@ namespace my_lib
             dfs(dfs, r, -1);
             return idx;
         }
-        vi dis(int s) { return Graph::dis(s); }
-        int dis(int u, int v)
+        vi dis(int s, vi *pp = nullptr) const { return Graph::dis(s, pp); }
+        int dis(int u, int v) const
         {
             assert(0 <= u && u < _n);
             assert(0 <= v && v < _n);
@@ -250,7 +270,7 @@ namespace my_lib
             return _dis[u] + _dis[v] - 2 * _dis[a];
         }
         template <typename T, typename F1, typename F2>
-        std::vector<T> rerooting(const F1 &merge, const F2 &f, const T &id)
+        std::vector<T> rerooting(const F1 &merge, const F2 &f, const T &id) const
         {
             std::vector<T> dp(_n, id);
             const auto dfs1 = [&](auto &&rf, int t, int p) -> void
@@ -295,6 +315,7 @@ namespace my_lib
         }
 
     protected:
+        vi _dis;
         vvi _parent;
     };
 
