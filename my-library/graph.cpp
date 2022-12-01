@@ -151,6 +151,34 @@ namespace my_lib
     {
         Tree(int n = 0) : Graph(n, n - 1) {}
         Tree(vvi t) : Graph(t) {}
+        bool operator==(const Tree &b) const
+        {
+
+            for (int ac : cen())
+                for (int bc : b.cen())
+                {
+                    std::map<vi, int> hm;
+                    if (hash(ac, -1, hm) == b.hash(bc, -1, hm))
+                        return true;
+                }
+            return false;
+        }
+        int hash(int t, int p, std::map<vi, int> &hm) const
+        {
+            vi c;
+            for (int n : (*this)[t])
+            {
+                if (n == p)
+                    continue;
+                c.push_back(hash(n, t, hm));
+            }
+            std::sort(c.begin(), c.end());
+            if (!hm.count(c))
+            {
+                hm[c] = hm.size();
+            }
+            return hm[c];
+        }
         std::tuple<int, int, int> dia(vi *dp = nullptr, vi *pp = nullptr) const
         {
             vi dis = this->dis(0);
