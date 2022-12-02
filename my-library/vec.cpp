@@ -9,7 +9,7 @@ namespace my_lib
         std::iota(res.begin(), res.end(), s);
         return res;
     }
-    std::vector<int> mkr(std::vector<int> p)
+    std::vector<int> mkr(const std::vector<int> &p)
     {
         int n = p.size();
         std::vector<int> r(n);
@@ -18,12 +18,23 @@ namespace my_lib
         return r;
     }
     template <typename T>
-    std::vector<std::pair<T, int>> mkvi(std::vector<T> v)
+    std::vector<std::pair<T, int>> mkvi(const std::vector<T> &v)
     {
         int n = v.size();
         std::vector<std::pair<T, int>> res(n);
         for (int i = 0; i < n; i++)
             res[i] = {v[i], i};
+        return res;
+    }
+    template <typename T>
+    std::vector<T> mkcsum(const std::vector<T> &v)
+    {
+        size_t n = v.size();
+        std::vector<T> res(n + 1);
+        for (int i = 0; i < n; i++)
+        {
+            res[i + 1] = res[i] + v[i];
+        }
         return res;
     }
     template <typename T>
