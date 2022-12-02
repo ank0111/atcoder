@@ -75,12 +75,12 @@ namespace my_lib
         return ret;
     }
     template <typename T>
-    size_t argmax(std::vector<T> v)
+    size_t argmax(const std::vector<T> &v)
     {
         return max_element(v.begin(), v.end()) - v.begin();
     }
     template <typename T>
-    size_t argmin(std::vector<T> v)
+    size_t argmin(const std::vector<T> &v)
     {
         return min_element(v.begin(), v.end()) - v.begin();
     }
