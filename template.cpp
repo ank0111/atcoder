@@ -1055,6 +1055,46 @@ namespace my_lib
     }
     return l;
   }
+  template <typename T, typename F, typename Comp>
+  T fibotan(T l, T r, const F &f, const Comp &comp)
+  {
+    assert(r >= l);
+    l--;
+    r++;
+    T d = r - l;
+    std::vector<long long> fib{0, 1};
+    int n = 2;
+    while (fib.back() < d)
+    {
+      fib.push_back(fib[n - 1] + fib[n - 2]);
+      n++;
+    }
+    T tl = l, tr = l + fib.back();
+    T m1 = tr - fib[n - 2], m2 = tl + fib[n - 2];
+    auto f1 = f(m1);
+    auto f2 = f(m2);
+    while (m1 != m2)
+    {
+      if (comp(f1, f2) || m2 >= r)
+      {
+        tr = m2;
+        m2 = m1;
+        f2 = f1;
+        m1 = tr - fib[n - 3];
+        f1 = f(m1);
+      }
+      else
+      {
+        tl = m1;
+        m1 = m2;
+        f1 = f2;
+        m2 = tl + fib[n - 3];
+        f2 = f(m2);
+      }
+      n--;
+    }
+    return m1;
+  }
 }
 
 using namespace std;
