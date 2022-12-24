@@ -108,6 +108,7 @@ namespace my_lib
         }
         T tl = l, tr = l + fib.back();
         T m1 = tr - fib[n - 2], m2 = tl + fib[n - 2];
+        n--;
         auto f1 = f(m1);
         auto f2 = f(m2);
         while (m1 != m2)
@@ -117,7 +118,7 @@ namespace my_lib
                 tr = m2;
                 m2 = m1;
                 f2 = f1;
-                m1 = tr - fib[n - 3];
+                m1 = tr - fib[n - 2];
                 f1 = f(m1);
             }
             else
@@ -125,7 +126,7 @@ namespace my_lib
                 tl = m1;
                 m1 = m2;
                 f1 = f2;
-                m2 = tl + fib[n - 3];
+                m2 = tl + fib[n - 2];
                 f2 = f(m2);
             }
             n--;
