@@ -84,4 +84,19 @@ namespace my_lib
     {
         return min_element(v.begin(), v.end()) - v.begin();
     }
+    template <typename T>
+    auto vbase(const std::vector<T> v)
+    {
+        std::vector<T> base;
+        for (T a : v)
+        {
+            for (T b : base)
+            {
+                a = min(a, a ^ b);
+            }
+            if (a)
+                base.push_back(a);
+        }
+        return base;
+    }
 }
