@@ -2,12 +2,11 @@
 
 namespace my_lib
 {
-    template <const unsigned long long MOD = (1ull << 61) - 1>
     struct RollingHash
     {
         using ull = unsigned long long;
         std::vector<ull> hash, power;
-        RollingHash(const string &s, const ull base = 10007)
+        RollingHash(const std::string &s, const ull base = 10007)
         {
             int n = s.size();
             hash.assign(n + 1, 0);
@@ -28,8 +27,9 @@ namespace my_lib
         }
 
     private:
-        const ull MASK30 = (1UL << 30) - 1;
-        const ull MASK31 = (1UL << 31) - 1;
+        const ull MASK30 = (1ull << 30) - 1;
+        const ull MASK31 = (1ull << 31) - 1;
+        const ull MOD = (1ull << 61) - 1;
         const ull MASK61 = MOD;
         ull mul(ull a, ull b) const
         {
