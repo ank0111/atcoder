@@ -290,6 +290,25 @@ namespace my_lib
       dfs(dfs, r, -1);
       return idx;
     }
+    vvi euler_tour(int r = 0) const
+    {
+      assert(0 <= r && r < _n);
+      vvi res(_n, vi(2));
+      int i = 0;
+      auto dfs = [&](auto &&f, int t, int p) -> void
+      {
+        res[t][0] = i++;
+        for (int n : (*this)[t])
+        {
+          if (n == p)
+            continue;
+          f(f, n, t);
+        }
+        res[t][1] = i++;
+      };
+      dfs(dfs, r, -1);
+      return res;
+    }
     vi dis(int s, vi *pp = nullptr) const { return Graph::dis(s, pp); }
     int dis(int u, int v) const
     {
