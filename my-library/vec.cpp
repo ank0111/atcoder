@@ -99,4 +99,28 @@ namespace my_lib
         }
         return base;
     }
+    template <typename T>
+    bool contains(const std::vector<T> &v, T t)
+    {
+        for (T a : v)
+        {
+            if (a == t)
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+    template <typename T, typename F>
+    bool containsBy(const std::vector<T> &v, F f)
+    {
+        for (T a : v)
+        {
+            if (f(a))
+            {
+                return true;
+            }
+        }
+        return false;
+    }
 }
