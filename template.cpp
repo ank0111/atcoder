@@ -1166,6 +1166,30 @@ namespace my_lib
     }
     return base;
   }
+  template <typename T>
+  bool contains(const std::vector<T> &v, T t)
+  {
+    for (T a : v)
+    {
+      if (a == t)
+      {
+        return true;
+      }
+    }
+    return false;
+  }
+  template <typename T, typename F>
+  bool containsBy(const std::vector<T> &v, F f)
+  {
+    for (T a : v)
+    {
+      if (f(a))
+      {
+        return true;
+      }
+    }
+    return false;
+  }
   template <typename... Args>
   void input(Args &&...args)
   {
@@ -1228,12 +1252,12 @@ namespace my_lib
     z = w;
     return (w = (w ^ (w >> 19)) ^ (t ^ (t >> 8)));
   }
-  template <typename T = long long, typename F>
-  T nibutan(T ok, T ng, const F &valid)
+  template <typename F>
+  long long nibutan(long long ok, long long ng, const F &valid)
   {
     while (abs(ok - ng) > 1)
     {
-      T m = (ok + ng) / 2;
+      long long m = (ok + ng) / 2;
       if (valid(m))
         ok = m;
       else
@@ -1241,13 +1265,13 @@ namespace my_lib
     }
     return ok;
   }
-  template <typename T = double, typename F, typename Comp>
-  T sanbutan(T l, T r, const F &f, const Comp &comp, size_t cnt = 1000)
+  template <typename F, typename Comp>
+  double sanbutan(double l, double r, const F &f, const Comp &comp, size_t cnt = 1000)
   {
     while (cnt--)
     {
-      T m1 = (l * 2 + r) / 3;
-      T m2 = (l + r * 2) / 3;
+      double m1 = (l * 2 + r) / 3;
+      double m2 = (l + r * 2) / 3;
       if (comp(f(m1), f(m2)))
         r = m2;
       else
@@ -1255,13 +1279,13 @@ namespace my_lib
     }
     return l;
   }
-  template <typename T, typename F, typename Comp>
-  T fibotan(T l, T r, const F &f, const Comp &comp)
+  template <typename F, typename Comp>
+  long long fibotan(long long l, long long r, const F &f, const Comp &comp)
   {
     assert(r >= l);
     l--;
     r++;
-    T d = r - l;
+    long long d = r - l;
     std::vector<long long> fib{0, 1};
     int n = 2;
     while (fib.back() < d)
@@ -1269,8 +1293,8 @@ namespace my_lib
       fib.push_back(fib[n - 1] + fib[n - 2]);
       n++;
     }
-    T tl = l, tr = l + fib.back();
-    T m1 = tr - fib[n - 2], m2 = tl + fib[n - 2];
+    long long tl = l, tr = l + fib.back();
+    long long m1 = tr - fib[n - 2], m2 = tl + fib[n - 2];
     n--;
     auto f1 = f(m1);
     auto f2 = f(m2);
