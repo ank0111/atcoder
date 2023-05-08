@@ -4,9 +4,9 @@ namespace my_lib
 {
   using ll = long long;
   template <typename Comp = std::less<ll>>
-  struct CHT2
+  struct CHT
   {
-    CHT2()
+    CHT()
     {
       s.insert({L(INF, 0), L(-INF, 0)});
       c.insert(CP(L(INF, 0), L(-INF, 0)));
